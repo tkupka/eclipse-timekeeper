@@ -67,6 +67,10 @@ jobs:
     - name: Create Version File
       run: (echo -n "VERSION=";mvn help:evaluate -Dexpression=project.version -q -DforceStdout) > version.txt
 
+    - name: Show Version File
+      run: cat version.txt
+
+
     - name: Create Version ENV Variable
       run: export $(< version.txt)
       
