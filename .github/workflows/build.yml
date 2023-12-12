@@ -68,7 +68,10 @@ jobs:
       run: (echo -n "VERSION=";mvn help:evaluate -Dexpression=project.version -q -DforceStdout) > version.txt
 
     - name: Create Version ENV Variable
-      run: export $(< version.txt)                    
+      run: export $(< version.txt)
+      
+    - name: Print Version ENV Variable
+      run: echo Version=$VERSION
                     
     - name: Upload p2 repository Version ${{ env.VERSION }}
       uses: actions/upload-artifact@v3
