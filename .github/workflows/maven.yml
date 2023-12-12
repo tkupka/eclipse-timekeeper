@@ -81,7 +81,7 @@ jobs:
     - name: Create Version ENV Variable
       run: export $(< version.txt)                    
                     
-    - name: Upload p2 repository Version: ${{ env.VERSION }}
+    - name: Upload p2 repository Version ${{ env.VERSION }}
       uses: actions/upload-artifact@v3
       with:
         name: Timekeeper${{ env.VERSION }}_build
