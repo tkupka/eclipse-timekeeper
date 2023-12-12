@@ -2,7 +2,7 @@
 
 This is a simple time-tracking plug-in integrating with [Eclipse Mylyn](http://eclipse.org/mylyn/) Tasks.
 
-![image](https://github.com/turesheim/eclipse-timekeeper/raw/master/resources/screenshots/workweek-view.png)
+![image](./blob/main/resources/screenshots/workweek-view.png)
 
 Whenever a task is *activated* in Mylyn it will automatically show up in the **Workweek** view with a bold label, and the amount of time the task is active will be tracked. An *activity* will be added to the task, which is the entity keeping track of the time and a short note. Multiple activities can be added to each task.
 
@@ -18,7 +18,7 @@ The data is now stored in a H2 SQL database, mapped to POJOs using the Java Pers
 
 The Database configuration page in preferences (**Timekeeper > Database**) allows you to configure where the database for the running Eclipse instance should be kept. The default is to place it in the shared location, under `.timekeeper` in your home folder. But you can also use a workspace relative path, or even a H2 server if you have one running.
 
-<img src="https://github.com/turesheim/eclipse-timekeeper/raw/master/resources/screenshots/preferences-database.png" width="50%"/>
+<img src="./blob/main/resources/screenshots/preferences-database.png" width="50%"/>
 
 Multiple instances of the Timekeeper can share the database as it utilizes a H2 feature called mixed mode. This will automatically start a server instance on port 9090 if more connections are needed.
 
@@ -27,7 +27,7 @@ The Export and Import buttons are used for exactly that. CSV files, one for each
 ## Installing
 
 You can install the latest **public release** from the <a href="http://marketplace.eclipse.org/content/timekeeper-eclipse">Eclipse Marketplace</a> or drag <a href="http://marketplace.eclipse.org/marketplace-client-intro?mpc_install=2196325" title="Drag and drop into a running Eclipse workspace to install Eclipse Timekeeper"><img src="https://marketplace.eclipse.org/sites/all/themes/solstice/public/images/marketplace/btn-install.png" height="28px"/>
-</a> into an running Eclipse instance. The latest CI build artifacts can be found under [GitHub Actions](https://github.com/turesheim/eclipse-timekeeper/actions?query=workflow%3ABuild). In order to install from there you must download the _p2-repository_ zip file and point your Eclipse instance to that. 
+</a> into an running Eclipse instance. The latest CI build artifacts can be found under [GitHub Actions](./actions/workflows/build.yml). In order to install from there you must download the _Timekeeper<version>_build_.zip file and point your Eclipse instance to that. 
 
 ## Building
 
