@@ -84,7 +84,7 @@ jobs:
         path: net.resheim.eclipse.timekeeper-site/target/repository
 
     - name: Deploy Version ${{ env.VERSION }} on Server
-      uses: genietim/ftp-action@releases/v4
+      uses: sebastianpopp/ftp-action@v2.0.0
       with:
         host: ${{ secrets.FTP_SERVER }}
         user: ${{ secrets.FTP_USERNAME }}
