@@ -11,6 +11,8 @@
 
 package net.resheim.eclipse.timekeeper.ui.views;
 
+import java.util.Optional;
+
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.mylyn.commons.ui.CommonImages;
 import org.eclipse.mylyn.internal.tasks.core.TaskCategory;
@@ -123,7 +125,8 @@ class TitleColumnLabelProvider extends TimeColumnLabelProvider {
 			Task task = (Task) element;
 			StringBuilder sb = new StringBuilder();
 			if (itask != null && itask.getTaskId() != null) {
-				sb.append(itask.getTaskId());
+				Optional.ofNullable(itask.getTaskKey())
+					.ifPresentOrElse(sb::append, () -> sb.append(itask.getTaskId()));
 				sb.append(": ");
 			}
 			sb.append(task.getTaskSummary());

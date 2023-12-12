@@ -30,6 +30,7 @@ import java.util.stream.Stream;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityTransaction;
 import javax.persistence.Query;
+import javax.persistence.TypedQuery;
 
 import org.eclipse.mylyn.internal.tasks.core.AbstractTask;
 import org.eclipse.mylyn.internal.tasks.core.LocalTask;
@@ -37,6 +38,9 @@ import org.eclipse.mylyn.internal.tasks.core.TaskCategory;
 import org.eclipse.mylyn.internal.tasks.core.TaskList;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
@@ -62,23 +66,24 @@ import net.resheim.eclipse.timekeeper.db.report.model.WorkWeek;
  * @author Torkild Ulvøy Resheim
  */
 @SuppressWarnings("restriction")
+@TestInstance(Lifecycle.PER_CLASS)
 public class TemplateTest {
-	
-	private final String[] VERBS = {"investigated","fixed", "studied"}; 
-	private final String[] SUBJECTS = {"weird code","annoying bug", "new feature", "build service"}; 	
+
+	private final String[] VERBS = { "investigated", "fixed", "studied" };
+	private final String[] SUBJECTS = { "weird code", "annoying bug", "new feature", "build service" };
 	private static EntityManager entityManager;
-	
+
 	static {
-		entityManager = PersistenceHelper.getEntityManager(); 
+		entityManager = PersistenceHelper.getEntityManager();
 	}
 
 	static Configuration configuration;
-	
+
 	@BeforeAll
 	public static void before() throws IOException {
 		configuration = new Configuration(Configuration.VERSION_2_3_27);
 		configuration.setTemplateLoader(new FileTemplateLoader(new File("./templates/")));
-		TimekeeperPlugin.setEntityManager(entityManager);
+		TimekeeperPlugin.getDefault().setEntityManager(entityManager);
 		Files.createDirectories(Paths.get("./test-reports"));
 	}
 
@@ -91,25 +96,38 @@ public class TemplateTest {
 		}
 		// clean up after running tests
 		transaction.begin();
-		Query createQuery = entityManager.createNativeQuery("SET REFERENTIAL_INTEGRITY FALSE;TRUNCATE TABLE ACTIVITY;TRUNCATE TABLE TASK;SET REFERENTIAL_INTEGRITY TRUE");
+
+		Query createQuery = entityManager.createNativeQuery("SET REFERENTIAL_INTEGRITY FALSE");
 		createQuery.executeUpdate();
+		createQuery = entityManager.createNativeQuery("TRUNCATE TABLE ACTIVITY");
+		createQuery.executeUpdate();
+		createQuery = entityManager.createNativeQuery("TRUNCATE TABLE PROJECT_TYPE");
+		createQuery.executeUpdate();
+		createQuery = entityManager.createNativeQuery("TRUNCATE TABLE PROJECT_TASK");
+		createQuery.executeUpdate();
+		createQuery = entityManager.createNativeQuery("TRUNCATE TABLE TASK");
+		createQuery.executeUpdate();
+		createQuery = entityManager.createNativeQuery("SET REFERENTIAL_INTEGRITY TRUE");
+		createQuery.executeUpdate();
+
+		entityManager.flush();
 		transaction.commit();
 	}
-	
+
 	@ParameterizedTest
 	@MethodSource(value = "listTemplates")
-	public void testSimpleTemplate(String name) throws TemplateNotFoundException, MalformedTemplateNameException, ParseException,
-			IOException, TemplateException {
+	public void testSimpleTemplate(String name) throws TemplateNotFoundException, MalformedTemplateNameException,
+			ParseException, IOException, TemplateException {
 		Template template = configuration.getTemplate(name, Locale.getDefault(), "utf-8", true);
 		File result = new File("test-reports/" + name);
 		FileOutputStream fos = new FileOutputStream(result);
 		Writer out = new OutputStreamWriter(fos);
-		
+
 		// create the objects we're reporting on
-		List<WorkWeek> weeks  = new ArrayList<>();
+		List<WorkWeek> weeks = new ArrayList<>();
 		// create a new work week instance with associated tasks
 		weeks.add(new WorkWeek(LocalDate.of(1969, 3, 10), createTestTasks()));
-		
+
 		// add the various models that we need for formatting and data extraction
 		HashMap<String, Object> contents = new HashMap<>();
 		// utility for formatting DateTime instances
@@ -123,8 +141,8 @@ public class TemplateTest {
 		// and do the processing
 		template.process(contents, out);
 	}
-	
-	static Stream<String> listTemplates() throws IOException{
+
+	static Stream<String> listTemplates() throws IOException {
 		return Files.list(Paths.get("templates")).map(f -> f.getFileName().toString());
 	}
 
@@ -142,10 +160,8 @@ public class TemplateTest {
 		int vi = 0;
 		int si = 0;
 		TaskList tl = new TaskList();
-		TaskCategory[] projects = new TaskCategory[] {
-			new TaskCategory("project-a", "Project A"),
-			new TaskCategory("project-b", "Project B")
-		};
+		TaskCategory[] projects = new TaskCategory[] { new TaskCategory("project-a", "Project A"),
+				new TaskCategory("project-b", "Project B") };
 		tl.addCategory(projects[0]);
 		tl.addCategory(projects[1]);
 		Set<Task> tasks = new HashSet<>();
@@ -153,21 +169,24 @@ public class TemplateTest {
 		for (int i = 1; i < 7; i++) {
 			AbstractTask mylynTask = new LocalTask(String.valueOf(i), "Task #" + i);
 //			tasks.add(mylynTask);
-			tl.addTask(mylynTask, projects[i%2]);
-			Task task = new Task();
-			// for each task, create one activity 
-			for (int d = 1; d < 3 + (d%i); d++) {
+			tl.addTask(mylynTask, projects[i % 2]);
+			Task task = new Task(mylynTask);
+			// for each task, create one activity
+			for (int d = 1; d < 3 + (d % i); d++) {
 				int offset = d + i - 2;
 				// create a new activity
 				Activity a1 = new Activity();
 				a1.setSummary(String.format("Activity %1$s %2$s", VERBS[vi], SUBJECTS[si]));
-				LocalDateTime start = LocalDateTime.of(1969, 3, 10+offset, 8, 0);
+				LocalDateTime start = LocalDateTime.of(1969, 3, 10 + offset, 8, 0);
 				task.addActivity(a1);
 				a1.setStart(start);
-				a1.setEnd(start.plusMinutes(30+(d*10)));
-				vi++; si++;
-				if (vi==VERBS.length)vi=0;
-				if (si==VERBS.length)si=0;
+				a1.setEnd(start.plusMinutes(30 + (d * 10)));
+				vi++;
+				si++;
+				if (vi == VERBS.length)
+					vi = 0;
+				if (si == VERBS.length)
+					si = 0;
 			}
 			persist(task);
 			tasks.add(task);

@@ -27,8 +27,18 @@ location "http://download.eclipse.org/releases/2022-03/" {
 	org.eclipse.mylyn.github.feature.feature.jar
 	org.eclipse.mylyn.github.feature.feature.group
 }
+
+location "https://download.eclipse.org/rt/eclipselink/updates/" {
+	org.eclipse.persistence.sdk.feature.group
+	javax.persistence
+	javax.activation
+	javax.xml.bind
+	javax.activation
+	javax.validation
+}
+
 // Mylyn bits
-location "http://download.eclipse.org/mylyn/releases/latest" {
+location "https://download.eclipse.org/mylyn/updates/release" {
 	org.eclipse.mylyn.bugzilla_feature.feature.group
 	org.eclipse.mylyn.commons.feature.group
 	org.eclipse.mylyn.tasks.ide.feature.group
@@ -56,9 +66,6 @@ location "http://download.eclipse.org/technology/swtbot/releases/3.1.0/" {
 	org.hamcrest.core	
 }
 
-location "https://download.eclipse.org/gemini/jpa/updates/" {
-	org.eclipse.gemini.jpa [1.2.0,2.0.0)
-}
 
 location "https://download.eclipse.org/tools/orbit/downloads/drops/R20190827152740/repository" {
 	org.slf4j.api

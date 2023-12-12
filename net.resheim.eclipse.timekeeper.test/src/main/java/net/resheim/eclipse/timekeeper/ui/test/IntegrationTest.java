@@ -20,8 +20,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import org.apache.log4j.BasicConfigurator;
-import org.apache.log4j.Logger;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.mylyn.internal.tasks.core.TaskList;
 import org.eclipse.mylyn.internal.tasks.ui.TasksUiPlugin;
@@ -50,6 +48,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import net.resheim.eclipse.timekeeper.db.DatabaseChangeListener;
 import net.resheim.eclipse.timekeeper.db.TimekeeperPlugin;
@@ -60,9 +60,8 @@ import net.resheim.eclipse.timekeeper.db.model.Task;
 public class IntegrationTest {
 	
 	
-	private static final Logger log = Logger.getLogger(IntegrationTest.class);
+	private static final Logger log = LoggerFactory.getLogger(IntegrationTest.class);
 	static {
-		BasicConfigurator.configure();
 		SWTBotPreferences.TIMEOUT = 20000;
 	}
 

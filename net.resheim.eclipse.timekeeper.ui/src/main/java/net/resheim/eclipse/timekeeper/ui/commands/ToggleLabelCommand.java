@@ -36,7 +36,7 @@ public class ToggleLabelCommand extends AbstractHandler {
 	@Override
 	public Object execute(ExecutionEvent event) throws ExecutionException {
 		String id = event.getParameter(ActivityLabelMenu.TOGGLE_LABEL_PARAMETER_ID);
-		ActivityLabel label = TimekeeperPlugin.getLabels().filter(l -> l.getId().equals(id)).findFirst().get();
+		ActivityLabel label = TimekeeperPlugin.getDefault().getLabels().filter(l -> l.getId().equals(id)).findFirst().get();
 		ISelection selection = HandlerUtil.getCurrentSelection(event);
 		Object obj = ((IStructuredSelection) selection).getFirstElement();
 		if (obj instanceof Activity) {

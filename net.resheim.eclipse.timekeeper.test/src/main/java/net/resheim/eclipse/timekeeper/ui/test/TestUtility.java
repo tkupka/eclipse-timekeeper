@@ -15,7 +15,6 @@ import java.util.Optional;
 
 import javax.persistence.EntityTransaction;
 
-import org.apache.log4j.Logger;
 import org.eclipse.mylyn.internal.tasks.core.AbstractTaskCategory;
 import org.eclipse.mylyn.internal.tasks.core.LocalTask;
 import org.eclipse.mylyn.internal.tasks.core.TaskCategory;
@@ -30,6 +29,8 @@ import org.eclipse.swt.graphics.ImageLoader;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import net.resheim.eclipse.timekeeper.db.TimekeeperPlugin;
 import net.resheim.eclipse.timekeeper.db.model.Activity;
@@ -38,7 +39,7 @@ import net.resheim.eclipse.timekeeper.db.model.Task;
 @SuppressWarnings("restriction")
 public class TestUtility {
 
-	private static final Logger log = Logger.getLogger(TestUtility.class);
+	private static final Logger log = LoggerFactory.getLogger(TestUtility.class);
 	
 	private static final int RADIUS = 32;
 

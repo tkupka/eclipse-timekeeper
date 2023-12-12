@@ -37,7 +37,6 @@ public class GlobalTaskId implements Serializable {
 	 * @param taskId        the task identifier within the repository
 	 */
 	public GlobalTaskId(String repositoryUrl, String taskId) {
-		super();
 		this.repositoryUrl = repositoryUrl;
 		this.taskId = taskId;
 	}

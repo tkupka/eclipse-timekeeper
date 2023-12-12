@@ -47,7 +47,8 @@ public class ActivityLabelMenu extends CompoundContributionItem implements IWork
 
 	@Override
 	protected IContributionItem[] getContributionItems() {
-		return TimekeeperPlugin.getLabels().map(label -> addToMenu(label)).toArray(IContributionItem[]::new);
+		return TimekeeperPlugin.getDefault().getLabels().map(label -> addToMenu(label))
+				.toArray(IContributionItem[]::new);
 	}
 
 	private IContributionItem addToMenu(ActivityLabel label) {

@@ -72,14 +72,14 @@ public class Activity implements Comparable<Activity>, Serializable {
 	private boolean manual = false;
 
 	/** The task the activity is associated with */
-	@ManyToOne
+	@ManyToOne(cascade = CascadeType.ALL)
 	@JoinColumn(name = "TASK_ID", referencedColumnName = "TASK_ID")
 	@JoinColumn(name = "REPOSITORY_URL", referencedColumnName = "REPOSITORY_URL")
 	private Task task;
 
 	/** The project this activity is associated with, if not associated with a tracked task */
 	@ManyToOne
-	@JoinColumn(name = "ACTIVITY_PROJECT")
+	@JoinColumn(name = "PROJECT")
 	private Project project;
 
 	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)

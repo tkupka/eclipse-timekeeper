@@ -193,7 +193,7 @@ public class LabelPreferencePage extends PreferencePage implements IWorkbenchPre
 	}
 
 	private void initialize() {
-		editableLabels = TimekeeperPlugin.getLabels().map(l -> new ActivityLabel(l))
+		editableLabels = TimekeeperPlugin.getDefault().getLabels().map(l -> new ActivityLabel(l))
 				.collect(Collectors.toList());
 		fAppearanceColorTableViewer.setContentProvider(new IStructuredContentProvider() {
 			@Override
@@ -201,7 +201,7 @@ public class LabelPreferencePage extends PreferencePage implements IWorkbenchPre
 				return editableLabels.toArray();
 			}
 		});
-		fAppearanceColorTableViewer.setInput(TimekeeperPlugin.getLabels().toArray());
+		fAppearanceColorTableViewer.setInput(TimekeeperPlugin.getDefault().getLabels().toArray());
 		fAppearanceColorTableViewer.setSelection(new StructuredSelection(fAppearanceColorTableViewer.getElementAt(0)),
 				true);
 	}
@@ -250,7 +250,7 @@ public class LabelPreferencePage extends PreferencePage implements IWorkbenchPre
 
 	private void updateDatabase() {
 
-		Map<String, ActivityLabel> savedLabels = TimekeeperPlugin.getLabels()
+		Map<String, ActivityLabel> savedLabels = TimekeeperPlugin.getDefault().getLabels()
 				.collect(Collectors.toMap(l -> l.getId(), l -> l));
 
 		Map<String, ActivityLabel> updatedLabels = editableLabels.stream()
@@ -258,7 +258,7 @@ public class LabelPreferencePage extends PreferencePage implements IWorkbenchPre
 
 		savedLabels.forEach((t, u) -> {
 			if (!updatedLabels.containsKey(t)) {
-				TimekeeperPlugin.removeLabel(u);
+				TimekeeperPlugin.getDefault().removeLabel(u);
 			}
 		});
 
@@ -267,9 +267,9 @@ public class LabelPreferencePage extends PreferencePage implements IWorkbenchPre
 			if (label != null) {
 				label.setColor(u.getColor());
 				label.setName(u.getName());
-				TimekeeperPlugin.setLabel(label);
+				TimekeeperPlugin.getDefault().setLabel(label);
 			} else {
-				TimekeeperPlugin.setLabel(u);
+				TimekeeperPlugin.getDefault().setLabel(u);
 			}
 		});
 

@@ -1,9 +1,34 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <?pde?>
-<!-- generated with https://github.com/eclipse-cbi/targetplatform-dsl -->
-<target name="Resheim Timekeeper Target Platform" sequenceNumber="1666617536">
+<!-- generated with https://github.com/eclipse-cbi/targetplatform-dsl --><target name="Resheim Timekeeper Target Platform" sequenceNumber="1666617536">
   <locations>
-    <location includeMode="planner" includeAllPlatforms="false" includeSource="true" includeConfigurePhase="false" type="InstallableUnit">
+   <location includeAllPlatforms="false" includeConfigurePhase="false" includeMode="planner" includeSource="true" type="InstallableUnit">
+      <unit id="org.eclipse.equinox.sdk.feature.group" version="3.23.1000.v20231114-0937"/>
+      <unit id="org.eclipse.sdk.feature.group" version="4.30.0.v20231201-0512"/>
+      <unit id="org.eclipse.pde.core" version="3.17.200.v20231118-2008"/>
+      <unit id="org.eclipse.emf.ecore" version="2.35.0.v20230829-0934"/>
+      <unit id="org.eclipse.emf.ecore.xmi" version="2.36.0.v20231002-1156"/>
+      <unit id="org.eclipse.emf.ecore.change" version="2.15.0.v20230211-1150"/>
+      <unit id="org.eclipse.emf.common" version="2.29.0.v20230916-0637"/>
+      <unit id="org.eclipse.osgi" version="3.18.600.v20231110-1900"/>
+      <unit id="org.apache.log4j" version="1.2.24.v20221221-2012"/>
+      <unit id="org.apache.commons.collections" version="3.2.2.v201511171945"/>
+      <unit id="org.apache.commons.lang3" version="3.13.0"/>
+      <unit id="com.sun.xml.bind" version="2.3.3.v20221203-1659"/>
+      <!--<unit id="javax.persistence" version="2.2.1.v201807122140"/>
+      <unit id="javax.activation" version="1.2.2.v20221203-1659"/>
+      <unit id="org.eclipse.persistence.core" version="2.7.3.v20180807-4be1041"/>
+      <unit id="org.eclipse.persistence.jpa" version="2.7.3.v20180807-4be1041"/>
+      <unit id="org.eclipse.persistence.jpa.jpql" version="2.7.3.v20180807-4be1041"/>
+      <unit id="org.eclipse.persistence.asm" version="6.2.0.v201808041549"/>-->
+      <unit id="org.eclipse.sdk" version="4.30.0.v20231201-0110"/>
+      <unit id="org.eclipse.platform" version="4.30.0.v20231201-0110"/>
+      <unit id="org.eclipse.equinox.executable.feature.group" version="3.8.2300.v20231106-1826"/>
+      <unit id="org.eclipse.mylyn.github.feature.feature.jar" version="6.4.0.v20231125-1125"/>
+      <unit id="org.eclipse.mylyn.github.feature.feature.group" version="6.4.0.v20231125-1125"/>
+      <repository location="https://download.eclipse.org/releases/2023-12/"/>
+    </location>
+<!--    <location includeMode="planner" includeAllPlatforms="false" includeSource="true" includeConfigurePhase="false" type="InstallableUnit">
       <unit id="org.eclipse.equinox.p2.sdk.feature.group" version="3.11.1500.v20220223-1131"/>
       <unit id="org.eclipse.sdk.feature.group" version="4.23.0.v20220308-0722"/>
       <unit id="org.eclipse.pde.core" version="3.15.100.v20220221-1314"/>
@@ -27,46 +52,65 @@
       <unit id="org.eclipse.mylyn.github.feature.feature.jar" version="6.1.0.202203080745-r"/>
       <unit id="org.eclipse.mylyn.github.feature.feature.group" version="6.1.0.202203080745-r"/>
       <repository location="http://download.eclipse.org/releases/2022-03/"/>
+    </location>-->
+    <location includeAllPlatforms="false" includeConfigurePhase="false" includeMode="planner" includeSource="true" type="InstallableUnit">
+      <repository location="https://download.eclipse.org/mylyn/updates/release"/>
+	    <unit id="org.eclipse.mylyn.bugzilla.feature.feature.group" version="4.1.0.v20231125-1125"/>
+	    <unit id="org.eclipse.mylyn.bugzilla.core" version="4.1.0.v20231125-1125"/>
+  	    <unit id="jakarta.xml.bind" version="2.3.3.v20221203-1659"/>
+	    <unit id="org.eclipse.mylyn.commons.feature.feature.group" version="4.1.0.v20231125-1125"/>
+	    <unit id="org.eclipse.mylyn.commons.notifications.feature.feature.group" version="4.1.0.v20231009-0014"/>
+	    <unit id="org.eclipse.mylyn.tasks.feature.feature.group" version="4.1.0.v20231125-1125"/>
     </location>
-    <location includeMode="planner" includeAllPlatforms="false" includeSource="true" includeConfigurePhase="false" type="InstallableUnit">
-      <unit id="org.eclipse.mylyn.bugzilla_feature.feature.group" version="3.25.2.v20200814-0512"/>
-      <unit id="org.eclipse.mylyn.commons.feature.group" version="3.25.2.v20200813-0821"/>
-      <unit id="org.eclipse.mylyn.tasks.ide.feature.group" version="3.25.2.v20200814-0512"/>
-      <unit id="org.eclipse.mylyn.commons.notifications.core" version="1.17.2.v20200813-0821"/>
-      <unit id="org.eclipse.mylyn.commons.notifications.feed" version="1.17.2.v20200813-0821"/>
-      <unit id="com.sun.xml.bind" version="2.2.0.v201505121915"/>
-      <repository location="http://download.eclipse.org/mylyn/releases/latest"/>
-    </location>
-    <location includeMode="planner" includeAllPlatforms="false" includeSource="true" includeConfigurePhase="false" type="InstallableUnit">
-      <unit id="org.eclipse.swtbot.eclipse.gef.source.feature.group" version="3.1.0.202106041005"/>
-      <unit id="org.eclipse.swtbot.eclipse.gef.feature.group" version="3.1.0.202106041005"/>
-      <unit id="org.eclipse.swtbot.eclipse.source.feature.group" version="3.1.0.202106041005"/>
-      <unit id="org.eclipse.swtbot.eclipse.test.junit.feature.group" version="3.1.0.202106041005"/>
-      <unit id="org.eclipse.swtbot.eclipse.feature.group" version="3.1.0.202106041005"/>
-      <unit id="org.eclipse.swtbot.forms.source.feature.group" version="3.1.0.202106041005"/>
-      <unit id="org.eclipse.swtbot.forms.feature.group" version="3.1.0.202106041005"/>
-      <unit id="org.eclipse.swtbot.generator.feature.source.feature.group" version="3.1.0.202106041005"/>
-      <unit id="org.eclipse.swtbot.generator.feature.feature.group" version="3.1.0.202106041005"/>
-      <unit id="org.eclipse.swtbot.ide.source.feature.group" version="3.1.0.202106041005"/>
-      <unit id="org.eclipse.swtbot.ide.feature.group" version="3.1.0.202106041005"/>
-      <unit id="org.eclipse.swtbot.source.feature.group" version="3.1.0.202106041005"/>
-      <unit id="org.eclipse.swtbot.feature.group" version="3.1.0.202106041005"/>
+    <location includeAllPlatforms="false" includeConfigurePhase="false" includeMode="planner" includeSource="true" type="InstallableUnit">
+      <unit id="org.eclipse.swtbot.eclipse.gef.source.feature.group" version="4.1.0.202306071420"/>
+      <unit id="org.eclipse.swtbot.eclipse.gef.feature.group" version="4.1.0.202306071420"/>
+      <unit id="org.eclipse.swtbot.eclipse.source.feature.group" version="4.1.0.202306071420"/>
+      <unit id="org.eclipse.swtbot.eclipse.test.junit.feature.group" version="4.1.0.202306071420"/>
+      <unit id="org.eclipse.swtbot.eclipse.feature.group" version="4.1.0.202306071420"/>
+      <unit id="org.eclipse.swtbot.forms.source.feature.group" version="4.1.0.202306071420"/>
+      <unit id="org.eclipse.swtbot.forms.feature.group" version="4.1.0.202306071420"/>
+      <unit id="org.eclipse.swtbot.generator.feature.source.feature.group" version="4.1.0.202306071420"/>
+      <unit id="org.eclipse.swtbot.generator.feature.feature.group" version="4.1.0.202306071420"/>
+      <unit id="org.eclipse.swtbot.ide.source.feature.group" version="4.1.0.202306071420"/>
+      <unit id="org.eclipse.swtbot.ide.feature.group" version="4.1.0.202306071420"/>
+      <unit id="org.eclipse.swtbot.source.feature.group" version="4.1.0.202306071420"/>
+      <unit id="org.eclipse.swtbot.feature.group" version="4.1.0.202306071420"/>
       <unit id="org.hamcrest.library" version="1.3.0.v20180524-2246"/>
       <unit id="org.hamcrest.core" version="1.3.0.v20180420-1519"/>
-      <repository location="http://download.eclipse.org/technology/swtbot/releases/3.1.0/"/>
+      <repository location="https://download.eclipse.org/technology/swtbot/releases/latest/"/>
     </location>
-    <location includeMode="planner" includeAllPlatforms="false" includeSource="true" includeConfigurePhase="false" type="InstallableUnit">
+    <location includeAllPlatforms="false" includeConfigurePhase="false" includeMode="planner" includeSource="true" type="InstallableUnit">
       <unit id="org.eclipse.gemini.jpa" version="1.2.0.M1"/>
       <repository location="https://download.eclipse.org/gemini/jpa/updates/"/>
     </location>
-    <location includeMode="planner" includeAllPlatforms="false" includeSource="true" includeConfigurePhase="false" type="InstallableUnit">
+    <location includeAllPlatforms="false" includeConfigurePhase="false" includeMode="planner" includeSource="true" type="InstallableUnit">
       <unit id="org.slf4j.api" version="1.7.10.v20170428-1633"/>
-      <unit id="org.slf4j.impl.log4j12" version="1.7.2.v20131105-2200"/>
-      <unit id="org.slf4j.binding.simple" version="1.7.10.v20160301-1109"/>
       <unit id="ch.qos.logback.slf4j" version="1.1.2.v20160301-0943"/>
       <unit id="ch.qos.logback.classic" version="1.1.2.v20171220-1825"/>
       <unit id="ch.qos.logback.core" version="1.1.2.v20160208-0839"/>
       <repository location="https://download.eclipse.org/tools/orbit/downloads/drops/R20190827152740/repository"/>
     </location>
+	  <location includeAllPlatforms="false" includeConfigurePhase="false" includeMode="planner" includeSource="true" type="InstallableUnit">
+		  <repository location="https://download.eclipse.org/rt/eclipselink/updates/"/>
+<!--		  <unit id="org.eclipse.persistence.sdk.feature.group" version="2.7.9.v20210604-2c549e2208"/>-->
+	      <unit id="javax.persistence" version="2.2.0.v201708071007"/>
+    	  <unit id="javax.activation" version="1.1.0.v201108011116"/>
+	      <unit id="javax.xml.bind" version="2.2.12.v201410011542"/>
+	      <unit id="javax.activation" version="1.1.0.v201108011116"/>
+	      <unit id="javax.validation" version="1.1.0.v201304101302"/>
+	      <unit id="jakarta.persistence" version="2.2.3"/>
+		  <unit id="org.eclipse.persistence.core" version="2.7.11.v20220804-52dea2a3c0"/>
+      	  <unit id="org.eclipse.persistence.jpa" version="2.7.11.v20220804-52dea2a3c0"/>
+          <unit id="org.eclipse.persistence.jpa.jpql" version="2.7.11.v20220804-52dea2a3c0"/>
+          <unit id="org.eclipse.persistence.asm" version="9.3.0"/>
+          <unit id="org.eclipse.persistence.antlr" version="3.5.2.v201711011707"/>
+          <unit id="org.eclipse.persistence.sdo" version="2.7.11.v20220804-52dea2a3c0"/>
+          <unit id="commonj.sdo" version="2.1.1.v201112051852"/>
+          <unit id="org.eclipse.persistence.dbws" version="2.7.11.v20220804-52dea2a3c0"/>
+          <unit id="org.eclipse.persistence.moxy" version="2.7.11.v20220804-52dea2a3c0"/>
+          <unit id="org.eclipse.persistence.oracleddlparser" version="1.0.0.v201807030954"/>
+          
+	  </location>
   </locations>
 </target>

@@ -253,9 +253,9 @@ public class Task implements Serializable {
 					projectName = p.getSummary();
 				}
 				// the project is probably already in the database
-				Project project = TimekeeperPlugin.getProject(projectName);
+				Project project = TimekeeperPlugin.getDefault().getProject(projectName);
 				if (project == null) {
-					project = TimekeeperPlugin.createAndSaveProject(task);
+					project = TimekeeperPlugin.getDefault().createAndSaveProject(task);
 				}
 				this.setProject(project);
 			});

@@ -13,6 +13,7 @@ package net.resheim.eclipse.timekeeper.db;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -29,7 +30,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.CountDownLatch;
 import java.util.stream.Stream;
 
 import javax.persistence.EntityManager;
@@ -87,10 +87,8 @@ import net.resheim.eclipse.timekeeper.db.report.ReportTemplate;
  */
 @SuppressWarnings("restriction")
 public class TimekeeperPlugin extends Plugin {
-	
+
 	private static final Logger log = LoggerFactory.getLogger(TimekeeperPlugin.class);
-	
-	private static final CountDownLatch latch = new CountDownLatch(1);
 
 	public static final String BUNDLE_ID = "net.resheim.eclipse.timekeeper.db"; //$NON-NLS-1$
 
@@ -108,7 +106,8 @@ public class TimekeeperPlugin extends Plugin {
 
 	private static TimekeeperPlugin instance;
 
-	private static EntityManager entityManager = null;
+	private EntityManager entityManager = null;
+	private boolean initialized = false;
 
 	private static Job saveDatabaseJob;
 
@@ -128,7 +127,7 @@ public class TimekeeperPlugin extends Plugin {
 	private static final String LOCAL_REPO_ID = "local";
 
 	private static final String LOCAL_REPO_KEY_ID = "net.resheim.eclipse.timekeeper.repo-id"; //$NON-NLS-1$
-	
+
 	/**
 	 * Some features connected to Mylyn has no knowledge of Timekeeper tasks and in
 	 * order to avoid excessive lookups in the database, we utilise a simple cache.
@@ -162,81 +161,76 @@ public class TimekeeperPlugin extends Plugin {
 	}
 
 	private void connectToDatabase() {
-//		Job connectDatabaseJob = new Job("Connecting to Timekeeper database") {
-//
-//			@Override
-//			protected IStatus run(IProgressMonitor monitor) {
 		Runnable runnable = () -> {
-				log.info("Connecting to Timekeeper database");
-				Map<String, Object> props = new HashMap<String, Object>();
-				// default, default location
-				String jdbc_url = "jdbc:h2:~/.timekeeper/h2db";
-				try {
-					String location = Platform.getPreferencesService().getString(BUNDLE_ID, PREF_DATABASE_LOCATION,
-							PREF_DATABASE_LOCATION_SHARED, new IScopeContext[] { InstanceScope.INSTANCE });
-					switch (location) {
-					default:
-					case PREF_DATABASE_LOCATION_SHARED:
-						jdbc_url = getSharedLocation();
-						// Fix https://github.com/turesheim/eclipse-timekeeper/issues/107
-						System.setProperty("h2.bindAddress", "localhost");
-						break;
-					case PREF_DATABASE_LOCATION_WORKSPACE:
-						jdbc_url = getWorkspaceLocation();
-						break;
-					case PREF_DATABASE_LOCATION_URL:
-						jdbc_url = getSpecifiedLocation();
-						break;
-					}
-					// if this property has been specified it will override all other settings
-					if (System.getProperty("net.resheim.eclipse.timekeeper.db.url") != null) {
-						log.info("Database URL was specified using property 'net.resheim.eclipse.timekeeper.db.url'");
-						jdbc_url = System.getProperty("net.resheim.eclipse.timekeeper.db.url");
-					}
-					log.info("Using database at '{}'", jdbc_url);
-
-					// baseline the database
-//					Flyway flyway = Flyway.configure()
-//							.dataSource(jdbc_url, "sa", "")
-//							.baselineOnMigrate(false)
-//							.locations("classpath:/db/").load();
-//					flyway.migrate();
-					// https://www.eclipse.org/forums/index.php?t=msg&goto=541155&
-					props.put(PersistenceUnitProperties.CLASSLOADER, TimekeeperPlugin.class.getClassLoader());
-					props.put(PersistenceUnitProperties.JDBC_URL, jdbc_url);
-					props.put(PersistenceUnitProperties.JDBC_DRIVER, "org.h2.Driver");
-					props.put(PersistenceUnitProperties.JDBC_USER, "sa");
-					props.put(PersistenceUnitProperties.JDBC_PASSWORD, "");
-					props.put(PersistenceUnitProperties.LOGGING_LEVEL, "fine"); // fine / fine
-					// we want Flyway to create the database, it gives us better control over migrating?
-//					props.put(PersistenceUnitProperties.DDL_GENERATION, "create-tables");
-//					props.put(PersistenceUnitProperties.JAVASE_DB_INTERACTION, "true");
-					createEntityManager(props);
-				} catch (Exception e) {
-					throw new RuntimeException("Could not connect to Timekeeper database at " + jdbc_url, e);
+			log.info("Connecting to Timekeeper database");
+			Map<String, Object> props = new HashMap<String, Object>();
+			// default, default location
+			String jdbc_url = "jdbc:h2:~/.timekeeper/h2db";
+			try {
+				String location = Platform.getPreferencesService().getString(BUNDLE_ID, PREF_DATABASE_LOCATION,
+						PREF_DATABASE_LOCATION_SHARED, new IScopeContext[] { InstanceScope.INSTANCE });
+				switch (location) {
+				default:
+				case PREF_DATABASE_LOCATION_SHARED:
+					jdbc_url = getSharedLocation();
+					// Fix https://github.com/turesheim/eclipse-timekeeper/issues/107
+					System.setProperty("h2.bindAddress", "localhost");
+					break;
+				case PREF_DATABASE_LOCATION_WORKSPACE:
+					jdbc_url = getWorkspaceLocation();
+					break;
+				case PREF_DATABASE_LOCATION_URL:
+					jdbc_url = getSpecifiedLocation();
+					break;
 				}
-				cleanTaskActivities();
-				notifyListeners();
-				latch.countDown();
+				// if this property has been specified it will override all other settings
+				if (System.getProperty("net.resheim.eclipse.timekeeper.db.url") != null) {
+					log.info("Database URL was specified using property 'net.resheim.eclipse.timekeeper.db.url'");
+					jdbc_url = System.getProperty("net.resheim.eclipse.timekeeper.db.url");
+				}
+				log.info("Using database at '{}'", jdbc_url);
+
+				// baseline the database
+				// Flyway flyway = Flyway.configure()
+				// .dataSource(jdbc_url, "sa", "")
+				// .baselineOnMigrate(false)
+				// .locations("classpath:/db/").load();
+				// flyway.migrate();
+				// https://www.eclipse.org/forums/index.php?t=msg&goto=541155&
+				props.put(PersistenceUnitProperties.CLASSLOADER, TimekeeperPlugin.class.getClassLoader());
+				props.put(PersistenceUnitProperties.JDBC_URL, jdbc_url);
+				props.put(PersistenceUnitProperties.JDBC_DRIVER, "org.h2.Driver");
+				props.put(PersistenceUnitProperties.JDBC_USER, "sa");
+				props.put(PersistenceUnitProperties.JDBC_PASSWORD, "");
+				props.put(PersistenceUnitProperties.LOGGING_LEVEL, "fine"); // fine / fine
+				// we want Flyway to create the database, it gives us better control over
+				// migrating?
+				// props.put(PersistenceUnitProperties.DDL_GENERATION, "create-tables");
+				// props.put(PersistenceUnitProperties.JAVASE_DB_INTERACTION, "true");
+				createEntityManager(props);
+				log.info("Database connection established");
+			} catch (Exception e) {
+				throw new RuntimeException("Could not connect to Timekeeper database at " + jdbc_url, e);
+			}
+			cleanTaskActivities();
+			notifyListeners();
+			initialized = true;
 		};
 		Thread thread = new Thread(runnable);
-        thread.start();
-//				return Status.OK_STATUS;
-//			}
-//		};
-//		log.info("Starting connection job");
-//		connectDatabaseJob.setPriority(Job.LONG);
-//		connectDatabaseJob.schedule();
+		thread.start();
 	}
 
-	private static void createEntityManager(Map<String, Object> props) {
-		entityManager = new PersistenceProvider()
-				.createEntityManagerFactory("net.resheim.eclipse.timekeeper.db", props)
-				.createEntityManager(props);
+	private void createEntityManager(Map<String, Object> props) {
+		try {
+			entityManager = new PersistenceProvider()
+					.createEntityManagerFactory("net.resheim.eclipse.timekeeper.db", props).createEntityManager(props);
+		} catch (Exception e) {
+			log.error("Unable to create entity manager", e);
+		}
 	}
-	
+
 	public boolean isReady() {
-		return latch.getCount() == 0;
+		return (initialized && entityManager != null && entityManager.isOpen());
 	}
 
 	public class WorkspaceSaveParticipant implements ISaveParticipant {
@@ -274,7 +268,7 @@ public class TimekeeperPlugin extends Plugin {
 		}
 		return instance;
 	}
-	
+
 	public EntityManager getEntityManager() {
 		return entityManager;
 	}
@@ -283,10 +277,12 @@ public class TimekeeperPlugin extends Plugin {
 	public void start(BundleContext context) throws Exception {
 		super.start(context);
 		log.info("Starting TimekeeperPlugin");
+		instance = this;
 		connectToDatabase();
 		createSaveJob();
 		ISaveParticipant saveParticipant = new WorkspaceSaveParticipant();
 		ResourcesPlugin.getWorkspace().addSaveParticipant(BUNDLE_ID, saveParticipant);
+
 	}
 
 	/**
@@ -296,8 +292,7 @@ public class TimekeeperPlugin extends Plugin {
 	 * applied using data from Mylyn.
 	 */
 	private void cleanTaskActivities() {
-		TypedQuery<Task> createQuery = entityManager.createQuery("SELECT t FROM Task t",
-				Task.class);
+		TypedQuery<Task> createQuery = entityManager.createNamedQuery("Task.findAll", Task.class);
 		List<Task> resultList = createQuery.getResultList();
 		for (Task trackedTask : resultList) {
 			trackedTask.getCurrentActivity().ifPresent(activity -> {
@@ -337,15 +332,16 @@ public class TimekeeperPlugin extends Plugin {
 	}
 
 	/**
-	 * Returns the Timekeeper {@link Task} associated with the given Mylyn
-	 * task. If no such task exists it will be created.
+	 * Returns the Timekeeper {@link Task} associated with the given Mylyn task. If
+	 * no such task exists it will be created.
 	 * 
 	 * @param task the Mylyn task
 	 * @return a {@link Task} associated with the Mylyn task
 	 * @throws InterruptedException
 	 */
 	public Task getTask(ITask task) {
-		// the UI will typically attempt to get some task details before the database is ready 
+		// the UI will typically attempt to get some task details before the database is
+		// ready
 		if (entityManager == null) {
 			return null;
 		}
@@ -362,9 +358,10 @@ public class TimekeeperPlugin extends Plugin {
 			return tt;
 		} else {
 			log.info("Task '{}' was not linked with Mylyn task", found);
-			// make sure there is a link between the two tasks, this would be the case if the tracked task was just
+			// make sure there is a link between the two tasks, this would be the case if
+			// the tracked task was just
 			// loaded from the database
-			if (found.getTaskLinkStatus().equals(TaskLinkStatus.UNDETERMINED)) { 
+			if (found.getTaskLinkStatus().equals(TaskLinkStatus.UNDETERMINED)) {
 				found.linkWithMylynTask(task);
 				entityManager.persist(found);
 			}
@@ -373,9 +370,24 @@ public class TimekeeperPlugin extends Plugin {
 		}
 	}
 
+	public Task persistTask(Task task) {
+
+		EntityTransaction transaction = entityManager.getTransaction();
+		boolean activeTransaction = transaction.isActive();
+		if (!activeTransaction) {
+			transaction.begin();
+		}
+		entityManager.persist(task);
+		log.debug("Storing task {}", task);
+		if (!activeTransaction) {
+			transaction.commit();
+		}
+		return task;
+	}
+
 	/**
-	 * Returns the Mylyn {@link ITask} associated with the given {@link Task}
-	 * task. If no such task exists <code>null</code> will be returned.
+	 * Returns the Mylyn {@link ITask} associated with the given {@link Task} task.
+	 * If no such task exists <code>null</code> will be returned.
 	 * 
 	 * @param task the time tracked task
 	 * @return a Mylyn task or <code>null</code>
@@ -383,10 +395,7 @@ public class TimekeeperPlugin extends Plugin {
 	public static ITask getMylynTask(Task task) {
 		// get the repository then find the task. Seems like the Mylyn API is
 		// a bit limited in this area as I could not find something more usable
-		Optional<TaskRepository> tr = TasksUi
-				.getRepositoryManager()
-				.getAllRepositories()
-				.stream()
+		Optional<TaskRepository> tr = TasksUi.getRepositoryManager().getAllRepositories().stream()
 				.filter(r -> r.getRepositoryUrl().equals(task.getRepositoryUrl())).findFirst();
 		if (tr.isPresent()) {
 			return TasksUi.getRepositoryModel().getTask(tr.get(), task.getTaskId());
@@ -396,8 +405,8 @@ public class TimekeeperPlugin extends Plugin {
 
 	/**
 	 * Exports Timekeeper related data to two separate CSV files. One for
-	 * {@link Task}, another for {@link Activity} instances and yet another
-	 * for the relations between these two.
+	 * {@link Task}, another for {@link Activity} instances and yet another for the
+	 * relations between these two.
 	 * 
 	 * TODO: Compress into zip
 	 * 
@@ -460,8 +469,7 @@ public class TimekeeperPlugin extends Plugin {
 			entityManager.createNativeQuery("SET REFERENTIAL_INTEGRITY TRUE;").executeUpdate();
 			transaction.commit();
 			// update all instances with potentially new content
-			TypedQuery<Task> createQuery = entityManager.createQuery("SELECT t FROM Task t",
-					Task.class);
+			TypedQuery<Task> createQuery = entityManager.createNamedQuery("Task.findAll", Task.class);
 			List<Task> resultList = createQuery.getResultList();
 			for (Task trackedTask : resultList) {
 				entityManager.refresh(trackedTask);
@@ -495,15 +503,20 @@ public class TimekeeperPlugin extends Plugin {
 	 * @return a connection URL string for the shared location
 	 */
 	public String getSharedLocation() {
-		return "jdbc:h2:~/.timekeeper/h2db;AUTO_SERVER=TRUE;FILE_LOCK=SOCKET;AUTO_RECONNECT=TRUE;AUTO_SERVER_PORT=9090";
+		return "jdbc:h2:~/.timekeeper/h2db;AUTO_SERVER=TRUE;FILE_LOCK=SOCKET;AUTO_RECONNECT=TRUE;AUTO_SERVER_PORT=9999";
 	}
 
 	public String getWorkspaceLocation() throws IOException {
 		String jdbc_url;
 		Location instanceLocation = Platform.getInstanceLocation();
-		Path path = Paths.get(instanceLocation.getURL().getPath()).resolve(".timekeeper");
-		if (!path.toFile().exists()) {
-			Files.createDirectory(path);
+		Path path = Path.of("~/.timekeeper");
+		try {
+			path = Paths.get(instanceLocation.getURL().toURI()).resolve(".timekeeper");
+			if (!path.toFile().exists()) {
+				Files.createDirectory(path);
+			}
+		} catch (URISyntaxException e) {
+			log.error("Unable to resolve directory", e);
 		}
 		jdbc_url = "jdbc:h2:" + path + "/h2db";
 		return jdbc_url;
@@ -517,20 +530,27 @@ public class TimekeeperPlugin extends Plugin {
 		return jdbc_url;
 	}
 
-	private static void createSaveJob() {
+	private void createSaveJob() {
 		saveDatabaseJob = new Job("Saving Timekeeper database") {
 
 			@Override
 			protected IStatus run(IProgressMonitor monitor) {
 				if (entityManager != null && entityManager.isOpen()) {
-					List<Project> resultList = entityManager.createNamedQuery("Project.findAll", Project.class).getResultList();
+					List<Project> resultList = entityManager.createNamedQuery("Project.findAll", Project.class)
+							.getResultList();
 					EntityTransaction transaction = entityManager.getTransaction();
-					transaction.begin();
+					boolean activeTransaction = transaction.isActive();
+					if (!activeTransaction) {
+						transaction.begin();
+
+					}
 					for (Object object : resultList) {
 						entityManager.persist(object);
-						log.debug("Storing project {}",object);
+						log.debug("Storing project {}", object);
 					}
-					transaction.commit();
+					if (!activeTransaction) {
+						transaction.commit();
+					}
 					return Status.OK_STATUS;
 				} else {
 					return new Status(IStatus.ERROR, BUNDLE_ID, "Cannot persist data – no database connection.");
@@ -597,19 +617,20 @@ public class TimekeeperPlugin extends Plugin {
 		}
 		return "<undetermined>";
 	}
-	
-	public static Project getProject(String title) {
+
+	public Project getProject(String title) {
 		return entityManager.find(Project.class, title);
 	}
-	
+
 	/**
-	 * Creates a new {@link Project} based on information obtained from the Mylyn task. A {@link ProjectType} will also
-	 * be created if it does not already exist.
-	 *  
+	 * Creates a new {@link Project} based on information obtained from the Mylyn
+	 * task. A {@link ProjectType} will also be created if it does not already
+	 * exist.
+	 * 
 	 * @param task
 	 * @return
 	 */
-	public static Project createAndSaveProject(ITask task) {
+	public Project createAndSaveProject(ITask task) {
 		EntityTransaction transaction = entityManager.getTransaction();
 		boolean activeTransaction = transaction.isActive();
 		String name = getMylynProjectName(task);
@@ -628,49 +649,48 @@ public class TimekeeperPlugin extends Plugin {
 			transaction.commit();
 		}
 		return project;
-		
+
 	}
 
 	/**
-	 * Return all tracked tasks, those that are associated with a Mylyn task will have the proper assignment.
+	 * Return all tracked tasks, those that are associated with a Mylyn task will
+	 * have the proper assignment.
 	 * 
 	 * @return a stream of tasks
 	 */
-	public static Stream<Task> getTasks(LocalDate startDate) {
+	public Stream<Task> getTasks(LocalDate startDate) {
 		if (entityManager == null) {
 			return Stream.empty();
 		}
-		return entityManager.createNamedQuery("Task.findAll", Task.class)
-				.getResultStream()
+		Stream<Task> tasks = entityManager.createNamedQuery("Task.findAll", Task.class).getResultStream()
 				// TODO: Move filtering to database
-				.filter(tt -> hasData(tt, startDate))
-				.map(TimekeeperPlugin::linkWithMylynTask);
+				.filter(tt -> hasData(tt, startDate)).map(TimekeeperPlugin::linkWithMylynTask);
+		return tasks;
 	}
-	
+
 	private static boolean hasData/* this week */(Task task, LocalDate startDate) {
-		// this should only be NULL if the database has not started yet. See databaseStateChanged()
+		// this should only be NULL if the database has not started yet. See
+		// databaseStateChanged()
 		if (task == null) {
 			return false;
 		}
 		LocalDate endDate = startDate.plusDays(7);
-		Stream<Activity> filter = task
-				.getActivities()
-				.stream()
+		Stream<Activity> filter = task.getActivities().stream()
 				.filter(a -> a.getDuration(startDate, endDate) != Duration.ZERO);
-		return filter.count() > 0;
+		boolean filtered = filter.count() > 0;
+		return filtered;
 	}
-	
+
 	/**
 	 * Finds and returns all activity label instances in the database.
 	 * 
 	 * @return a stream of labels
 	 */
-	public static Stream<ActivityLabel> getLabels(){
-		return entityManager.createNamedQuery("ActivityLabel.findAll", ActivityLabel.class)
-				.getResultStream();
+	public Stream<ActivityLabel> getLabels() {
+		return entityManager.createNamedQuery("ActivityLabel.findAll", ActivityLabel.class).getResultStream();
 	}
-	
-	public static void setLabel(ActivityLabel label) {
+
+	public void setLabel(ActivityLabel label) {
 		EntityTransaction transaction = entityManager.getTransaction();
 		boolean activeTransaction = transaction.isActive();
 		if (!activeTransaction) {
@@ -682,7 +702,7 @@ public class TimekeeperPlugin extends Plugin {
 		}
 	}
 
-	public static void removeLabel(ActivityLabel label) {
+	public void removeLabel(ActivityLabel label) {
 		EntityTransaction transaction = entityManager.getTransaction();
 		boolean activeTransaction = transaction.isActive();
 		if (!activeTransaction) {
@@ -693,6 +713,7 @@ public class TimekeeperPlugin extends Plugin {
 			transaction.commit();
 		}
 	}
+
 	/**
 	 * Links the given task with a Mylyn task if found in any of the workspace task
 	 * repositories. If a local task could not be found the tracked task will be
@@ -702,9 +723,7 @@ public class TimekeeperPlugin extends Plugin {
 	 * @return the modified tracked task
 	 */
 	private static Task linkWithMylynTask(Task tt) {
-		Optional<TaskRepository> tr = TasksUi.getRepositoryManager()
-				.getAllRepositories()
-				.stream()
+		Optional<TaskRepository> tr = TasksUi.getRepositoryManager().getAllRepositories().stream()
 				.filter(r -> r.getRepositoryUrl().equals(tt.getRepositoryUrl())).findFirst();
 		if (tr.isPresent()) {
 			tt.linkWithMylynTask(TasksUi.getRepositoryModel().getTask(tr.get(), tt.getTaskId()));
@@ -723,8 +742,8 @@ public class TimekeeperPlugin extends Plugin {
 	 * @see #start(BundleContext)
 	 * @see #connectToDatabase()
 	 */
-	static void setEntityManager(EntityManager entityManager) {
-		TimekeeperPlugin.entityManager = entityManager;
+	void setEntityManager(EntityManager entityManager) {
+		this.entityManager = entityManager;
 	}
 
 	/**
@@ -746,7 +765,7 @@ public class TimekeeperPlugin extends Plugin {
 				templates.put(t.getName(), t);
 			}
 		} catch (IOException | ClassNotFoundException e) {
-			log.error("Could not load report templates",e);
+			log.error("Could not load report templates", e);
 		}
 		return templates;
 	}

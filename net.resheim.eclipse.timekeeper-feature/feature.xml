@@ -2,7 +2,7 @@
 <feature
       id="net.resheim.eclipse.timekeeper"
       label="%featureName"
-      version="2.0.0.qualifier"
+      version="3.0.0.qualifier"
       provider-name="%providerName"
       plugin="net.resheim.eclipse.timekeeper.ui">
 
@@ -59,6 +59,13 @@
          install-size="0"
          version="0.0.0"
          unpack="false"/>
+         
+	<plugin
+         id="javax.validation"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
 
    <plugin
          id="org.eclipse.persistence.jpa.jpql"
@@ -66,6 +73,57 @@
          install-size="0"
          version="0.0.0"
          unpack="false"/>
+
+   <plugin
+         id="org.eclipse.persistence.antlr"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>         
+
+   <plugin
+         id="org.eclipse.persistence.sdo"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+         
+   <plugin
+         id="org.eclipse.persistence.dbws"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+         
+   <plugin
+         id="org.eclipse.persistence.moxy"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+         
+   <plugin
+         id="jakarta.persistence"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="org.eclipse.persistence.oracleddlparser"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="commonj.sdo"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+
 
    <plugin
          id="ch.qos.logback.classic"

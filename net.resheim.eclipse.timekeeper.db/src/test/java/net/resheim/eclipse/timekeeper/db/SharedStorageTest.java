@@ -10,7 +10,9 @@
  *******************************************************************************/
 package net.resheim.eclipse.timekeeper.db;
 
-import static org.junit.Assert.fail;
+
+
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -22,16 +24,19 @@ import javax.persistence.Query;
 
 import org.eclipse.mylyn.internal.tasks.core.LocalTask;
 import org.eclipse.mylyn.tasks.core.ITask;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 
 import net.resheim.eclipse.timekeeper.db.model.Activity;
-import net.resheim.eclipse.timekeeper.db.model.Task;
 import net.resheim.eclipse.timekeeper.db.model.GlobalTaskId;
+import net.resheim.eclipse.timekeeper.db.model.Task;
 
 @SuppressWarnings("restriction")
+@TestInstance(Lifecycle.PER_CLASS)
 public class SharedStorageTest {
 	
 	private static EntityManager entityManager;
@@ -141,12 +146,12 @@ public class SharedStorageTest {
 	
 	private LocalTask mylynTask;
 
-	@Before
+	@BeforeAll
 	public void before() {
 		mylynTask = new LocalTask("1", "TestmylynTask");
 	}
 
-	@After
+	@AfterEach
 	public void after() {
 		// empty all tables
 		EntityTransaction transaction = entityManager.getTransaction();
@@ -155,8 +160,19 @@ public class SharedStorageTest {
 		}
 		// clean up after running tests
 		transaction.begin();
-		Query createQuery = entityManager.createNativeQuery("SET REFERENTIAL_INTEGRITY FALSE;TRUNCATE TABLE ACTIVITY;TRUNCATE TABLE TASK;SET REFERENTIAL_INTEGRITY TRUE");
+		Query createQuery = entityManager.createNativeQuery("SET REFERENTIAL_INTEGRITY FALSE");
 		createQuery.executeUpdate();
+		createQuery = entityManager.createNativeQuery("TRUNCATE TABLE ACTIVITY");
+		createQuery.executeUpdate();
+		createQuery = entityManager.createNativeQuery("TRUNCATE TABLE PROJECT_TYPE");
+		createQuery.executeUpdate();
+		createQuery = entityManager.createNativeQuery("TRUNCATE TABLE PROJECT_TASK");
+		createQuery.executeUpdate();
+		createQuery = entityManager.createNativeQuery("TRUNCATE TABLE TASK");
+		createQuery.executeUpdate();
+		createQuery = entityManager.createNativeQuery("SET REFERENTIAL_INTEGRITY TRUE");
+		createQuery.executeUpdate();
+		entityManager.flush();
 		transaction.commit();
 	}
 
@@ -183,10 +199,10 @@ public class SharedStorageTest {
 		// Test the single task
 		if (dbTask instanceof Task) {
 			List<Activity> activities = ((Task) dbTask).getActivities();
-			Assert.assertEquals(1, activities.size());
+			Assertions.assertEquals(1, activities.size());
 			Activity activity = activities.get(0);
 			// duration should be one day
-			Assert.assertEquals(Duration.ofHours(1), activity.getDuration());
+			Assertions.assertEquals(Duration.ofHours(1), activity.getDuration());
 		}
 	}
 
@@ -228,9 +244,9 @@ public class SharedStorageTest {
 		if (dbTask instanceof Task) {
 			Task trackedTask = (Task) dbTask;
 			// total work on the 14th of March should be 4 hours
-			Assert.assertEquals(Duration.ofHours(4), trackedTask.getDuration(start.toLocalDate()));
+			Assertions.assertEquals(Duration.ofHours(4), trackedTask.getDuration(start.toLocalDate()));
 			// total work on the 16th of March should be 24 hours
-			Assert.assertEquals(Duration.ofHours(24), trackedTask.getDuration(start2.toLocalDate()));
+			Assertions.assertEquals(Duration.ofHours(24), trackedTask.getDuration(start2.toLocalDate()));
 		} else fail("Could not find task");
 	}
 

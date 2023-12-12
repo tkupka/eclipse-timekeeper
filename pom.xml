@@ -19,7 +19,7 @@
 
 	<groupId>net.resheim.eclipse.timekeeper</groupId>
 	<artifactId>net.resheim.eclipse.timekeeper-parent</artifactId>
-	<version>2.0.0-SNAPSHOT</version>
+	<version>3.0.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<name>Timekeeper for Eclipse</name>
@@ -51,11 +51,15 @@
 	</licenses>
 
 	<properties>
-		<tycho.version>2.7.5</tycho.version>
+		<tycho.version>4.0.4</tycho.version>
+		<jacoco.version>0.8.11</jacoco.version>
 		<tycho.scmUrl>scm:git:git://github.com/turesheim/eclipse-timekeeper.git</tycho.scmUrl>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<maven.compiler.source>11</maven.compiler.source>
-		<maven.compiler.target>11</maven.compiler.target>
+		<maven.compiler.source>17</maven.compiler.source>
+		<maven.compiler.target>17</maven.compiler.target>
+		<maven.compiler.release>17</maven.compiler.release>
+		<tycho-qualifier>yyyyMMdd-HHmm</tycho-qualifier>
+		
 	</properties>
 
 	<organization>
@@ -88,11 +92,10 @@
 						<artifact>
 							<groupId>net.resheim.eclipse.timekeeper</groupId>
 							<artifactId>net.resheim.eclipse.timekeeper-parent</artifactId>
-							<version>2.0.0-SNAPSHOT</version>
+							<version>${project.version}</version>
 							<classifier>default</classifier>
 						</artifact>
 					</target>
-					<resolver>p2</resolver>
 					<environments>
 						<environment>
 							<os>win32</os>
@@ -126,7 +129,7 @@
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>build-helper-maven-plugin</artifactId>
-				<version>1.7</version>
+				<version>3.5.0</version>
 			</plugin>
 			<!-- computes git revision for manifest -->
 			<plugin>
@@ -137,6 +140,8 @@
 					<archive>
 						<addMavenDescriptor>false</addMavenDescriptor>
 					</archive>
+					<format>${tycho-qualifier}</format>
+					<strictVersions>true</strictVersions>
 				</configuration>
 				<dependencies>
 					<dependency>

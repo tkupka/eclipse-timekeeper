@@ -122,7 +122,7 @@ public abstract class WeekViewContentProvider implements ITreeContentProvider, D
 	}
 
 	protected void filter() {
-		filtered = TimekeeperPlugin
+		filtered = TimekeeperPlugin.getDefault()
 				.getTasks(getFirstDayOfWeek())
 				.collect(Collectors.toSet());
 	}

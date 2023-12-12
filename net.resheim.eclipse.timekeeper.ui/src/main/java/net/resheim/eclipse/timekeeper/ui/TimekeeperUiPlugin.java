@@ -22,7 +22,7 @@ import java.util.Optional;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import org.apache.commons.lang.time.DurationFormatUtils;
+import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.resource.ImageDescriptor;
@@ -207,6 +207,7 @@ public class TimekeeperUiPlugin extends AbstractUIPlugin implements IPropertyCha
 													DateTimeFormatter.ofPattern("EEE e, HH:mm:ss", Locale.US))));
 						}
 					}
+					TimekeeperPlugin.getDefault().persistTask(ttask);
 				}
 			}
 		}
@@ -290,18 +291,20 @@ public class TimekeeperUiPlugin extends AbstractUIPlugin implements IPropertyCha
 			@Override
 			public void run() {
 				if (!PlatformUI.getWorkbench().isClosing()) {
+					TimekeeperPlugin timekeeperPlugin = TimekeeperPlugin.getDefault();
 					long idleTimeMillis = detector.getIdleTimeMillis();
 					// get the currently active Mylyn task if any
 					ITask task = TasksUi.getTaskActivityManager().getActiveTask();
-					if (null != task) {
+					if ((null != task) && (timekeeperPlugin.isReady())) {
 						if (idleTimeMillis < lastIdleTimeMillis && lastIdleTimeMillis > consideredIdleThreshold) {
 							// has been idle for too long, but is now activated
 							Display.getDefault().syncExec(() -> handleReactivation(idleTimeMillis));
 						} else if (lastIdleTimeMillis < consideredIdleThreshold) {
 							lastActiveTime = LocalDateTime.now();
-							Task trtask = TimekeeperPlugin.getDefault().getTask(task);
+							Task trtask = timekeeperPlugin.getTask(task);
 							if (trtask != null) {
 								trtask.setTick(lastActiveTime);
+								timekeeperPlugin.persistTask(trtask);
 							}
 						}
 					}

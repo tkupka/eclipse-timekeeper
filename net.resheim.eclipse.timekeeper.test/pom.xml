@@ -9,7 +9,7 @@
 		<relativePath>../pom.xml</relativePath>
 		<artifactId>net.resheim.eclipse.timekeeper-parent</artifactId>
 		<groupId>net.resheim.eclipse.timekeeper</groupId>
-		<version>2.0.0-SNAPSHOT</version>
+		<version>3.0.0-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>net.resheim.eclipse.timekeeper.test</artifactId>
@@ -17,6 +17,7 @@
 
 	<properties>
 		<uitest.vmparams>-Dorg.eclipse.swtbot.search.timeout=10000 -Xmx1024m -Dscreenshots=${project.build.directory}/../../images -Dnet.resheim.eclipse.timekeeper.db.url=jdbc:h2:mem:timekeeper_db;DB_CLOSE_DELAY=-1</uitest.vmparams>
+		<ui.test.vmargs>${uitest.vmparams}</ui.test.vmargs>
 		<sonar.coverage.jacoco.xmlReportPaths>${project.basedir}/../net.resheim.eclipse.timekeeper.test/target/site/jacoco-it/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
 	</properties>
 
@@ -78,7 +79,7 @@
 			<plugin>
 				<groupId>org.jacoco</groupId>
 				<artifactId>jacoco-maven-plugin</artifactId>
-				<version>0.8.6</version>
+				<version>${jacoco.version}</version>
 				<executions>
 					<execution>
 						<goals>
@@ -96,11 +97,12 @@
 						</goals>
 						<configuration>
 							<dataFileIncludes>**/jacoco-it.exec</dataFileIncludes>
-							<outputDirectory>${project.reporting.outputDirectory}/jacoco-it</outputDirectory>
+							<outputDirectory>
+								${project.reporting.outputDirectory}/jacoco-it</outputDirectory>
 						</configuration>
 					</execution>
 				</executions>
- 			</plugin>
+			</plugin>
 		</plugins>
 	</build>
 </project>
