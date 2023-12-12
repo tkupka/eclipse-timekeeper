@@ -23,6 +23,11 @@ jobs:
         distribution: 'temurin'
         java-version: 17
         
+    - name: Set up Maven 3.9
+      uses: thermofisher/setup-maven@v1.0.0
+      with:
+        maven-version: 3.9.0
+            
     - name: Install Xvfb
       run: sudo apt-get install xvfb
     
