@@ -82,3 +82,14 @@ jobs:
       with:
         name: Timekeeper${{ env.VERSION }}_build
         path: net.resheim.eclipse.timekeeper-site/target/repository
+
+    - name: Deploy Version ${{ env.VERSION }} on Server
+    - uses: actions/checkout@v2
+    - name: Upload to FTP
+      uses: genietim/ftp-action@releases/v4
+      with:
+        host: ${{ secrets.FTP_SERVER }}
+        user: ${{ secrets.FTP_USERNAME }}
+        password: ${{ secrets.FTP_PASSWORD }}
+        localDir: "net.resheim.eclipse.timekeeper-site/target/repository"
+        remoteDir: "${{ env.VERSION }}"
