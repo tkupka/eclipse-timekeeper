@@ -72,7 +72,7 @@ jobs:
 
 
     - name: Create Version ENV Variable
-      run:  export $(cat version.txt | xargs)
+      run:  cat version.txt >> "$GITHUB_ENV"
       
     - name: Print Version ENV Variable
       run: echo Version=$VERSION
