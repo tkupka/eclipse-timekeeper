@@ -63,9 +63,15 @@ jobs:
       with:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         report_paths: "**/target/surefire-reports/*.xml"
-                
-    - name: Upload p2 repository
-      uses: actions/upload-artifact@v1
+
+    - name: Create Version File
+      run: (echo -n "VERSION=";mvn help:evaluate -Dexpression=project.version -q -DforceStdout) > version.txt
+
+    - name: Create Version ENV Variable
+      run: export $(< version.txt)                    
+                    
+    - name: Upload p2 repository Version: ${{ env.VERSION }}
+      uses: actions/upload-artifact@v3
       with:
-        name: p2-repository
+        name: Timekeeper${{ env.VERSION }}_build
         path: net.resheim.eclipse.timekeeper-site/target/repository
