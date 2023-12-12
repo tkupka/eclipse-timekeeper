@@ -72,7 +72,7 @@ jobs:
 
 
     - name: Create Version ENV Variable
-      run: export $(< version.txt)
+      run:  export $(cat version.txt | xargs)
       
     - name: Print Version ENV Variable
       run: echo Version=$VERSION
