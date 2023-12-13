@@ -34,6 +34,8 @@ The latest CI build artifacts can be found under in following locations:
 * [GitHub Actions](.//actions?query=workflow%3ABuild) - In order to install from there you must download the _Timekeeper<version>_build_.zip file and point your Eclipse instance to that. 
 * [Update Site](https://timekeeper.solution42.cz/timekeeper/) Please select desired version and copy the URL to Help -> Install New Software.
 
+## Updating
+If you are upgrading from older version it might be necessary to delete the database and let Timekeeper to re-create it.
 
 ## Building
 
