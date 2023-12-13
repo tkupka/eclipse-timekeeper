@@ -70,7 +70,7 @@ public class TimekeeperUiPlugin extends AbstractUIPlugin implements IPropertyCha
 	/**
 	 * Time interval for updating elapsed time on a task (1s).
 	 */
-	private static final int SHORT_INTERVAL = 1000;
+	private static final int SHORT_INTERVAL = 10000;
 
 	/**
 	 * Returns the shared plug-in instance.
@@ -160,11 +160,12 @@ public class TimekeeperUiPlugin extends AbstractUIPlugin implements IPropertyCha
 			if (idleTimeMillis < lastIdleTimeMillis && lastIdleTimeMillis > consideredIdleThreshold) {
 				// If we have an active task
 				ITask task = TasksUi.getTaskActivityManager().getActiveTask();
-				Task ttask = TimekeeperPlugin.getDefault().getTask(task);
+				// Task ttask = TimekeeperPlugin.getDefault().getTask(task);
 				// and we have recorded a starting point
-				if (task != null && ttask.getCurrentActivity().isPresent()) {
+				// if (task != null && ttask.getCurrentActivity().isPresent()) {
+				if (task != null) {
 					dialogIsOpen = true;
-					LocalDateTime lastActive = ttask.getTick();
+					boolean reactivate = false;
 
 					// If the user have been idle, but not long enough to be
 					// considered AFK we will ask whether or not to add the
@@ -181,33 +182,35 @@ public class TimekeeperUiPlugin extends AbstractUIPlugin implements IPropertyCha
 								"Disregard idle time?", null,
 								MessageFormat.format(
 										"The computer has been idle since {0}, more than {1}. Stop current activity and set end time to last active time? A new activity will be started from now.",
-										lastActive.format(DateTimeFormatter.ofPattern("EEE e, HH:mm:ss", Locale.US)),
+										lastActiveTime
+										.format(DateTimeFormatter.ofPattern("EEE e, HH:mm:ss", Locale.US)),
 										time),
 								MessageDialog.QUESTION, new String[] { "No", "Yes" }, 1);
 						int open = md.open();
 						dialogIsOpen = false;
 						if (open == 1) {
 							// set time to the last activity detected
-							ttask.endActivity(lastActive);
+							//ttask.endActivity(lastActiveTime);
 							// and create a new activity
-							ttask.startActivity();
+							//ttask.startActivity();
+							reactivate = true;
 						}
 					} else {
 						// If the user has been idle long enough to be
 						// considered away, the idle time will be ignored
-						ttask.endActivity(lastActive);
+						//ttask.endActivity(lastActiveTime);
 						String duration = DurationFormatUtils.formatDuration(lastIdleTimeMillis, "H:mm:ss", true);
 						if (afkDeactivate) {
-							TasksUi.getTaskActivityManager().deactivateTask(ttask.getMylynTask());
+							TasksUi.getTaskActivityManager().deactivateTask(task);
 							MessageDialog.openInformation(Display.getCurrent().getActiveShell(),
 									"Activity automatically stopped",
 									MessageFormat.format(
 											"You have been away for too long ({0}) and tracking of the current activity was automatically ended on {1}.",
-											duration, lastActive.format(
+											duration, lastActiveTime.format(
 													DateTimeFormatter.ofPattern("EEE e, HH:mm:ss", Locale.US))));
 						}
 					}
-					TimekeeperPlugin.getDefault().persistTask(ttask);
+					TimekeeperPlugin.getDefault().endTaskActivity(task, lastActiveTime, reactivate);
 				}
 			}
 		}
@@ -301,11 +304,6 @@ public class TimekeeperUiPlugin extends AbstractUIPlugin implements IPropertyCha
 							Display.getDefault().syncExec(() -> handleReactivation(idleTimeMillis));
 						} else if (lastIdleTimeMillis < consideredIdleThreshold) {
 							lastActiveTime = LocalDateTime.now();
-							Task trtask = timekeeperPlugin.getTask(task);
-							if (trtask != null) {
-								trtask.setTick(lastActiveTime);
-								timekeeperPlugin.persistTask(trtask);
-							}
 						}
 					}
 					lastIdleTimeMillis = idleTimeMillis;

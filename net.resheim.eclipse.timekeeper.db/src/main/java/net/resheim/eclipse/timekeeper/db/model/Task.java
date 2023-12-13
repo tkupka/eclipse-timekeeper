@@ -23,7 +23,6 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
-import javax.persistence.Convert;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.Id;
@@ -43,7 +42,6 @@ import org.eclipse.mylyn.internal.tasks.core.RepositoryQuery;
 import org.eclipse.mylyn.tasks.core.ITask;
 
 import net.resheim.eclipse.timekeeper.db.TimekeeperPlugin;
-import net.resheim.eclipse.timekeeper.db.converters.LocalDateTimeAttributeConverter;
 
 /**
  * A {@link Task} is the persisted link to an {@link AbstractTask}. It holds a
@@ -56,9 +54,9 @@ import net.resheim.eclipse.timekeeper.db.converters.LocalDateTimeAttributeConver
 @Entity
 @Table(name = "TASK")
 @IdClass(value = GlobalTaskId.class)
-@NamedQuery(name="Task.findAll", query="SELECT t FROM Task t")
+@NamedQuery(name = "Task.findAll", query = "SELECT t FROM Task t")
 public class Task implements Serializable {
-	
+
 	private static final long serialVersionUID = -2455754936217658613L;
 
 	@Transient
@@ -75,7 +73,7 @@ public class Task implements Serializable {
 	@ManyToOne
 	@JoinColumn(name = "TASK_PROJECT")
 	private Project taskProject;
-	
+
 	@Column(name = "TASK_URL")
 	private String taskUrl;
 
@@ -86,18 +84,13 @@ public class Task implements Serializable {
 	@JoinColumn(name = "CURRENTACTIVITY_ID")
 	private Activity currentActivity;
 
-	/** The last time the task was active while the user was not idle */
-	@Convert(converter = LocalDateTimeAttributeConverter.class)
-	@Column(name = "TICK")
-	private LocalDateTime tick;
-
 	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 	private List<Activity> activities;
-	
+
 	/** Optional link to a Mylyn task */
 	@Transient
 	private transient ITask mylynTask;
-	
+
 	/**
 	 * Used to determine whether or not this task has been linked to a corresponding
 	 * Mylyn task or if an attempt has been made.
@@ -136,15 +129,10 @@ public class Task implements Serializable {
 	 */
 	public Activity endActivity() {
 		Activity returnActivity = null;
-		if (currentActivity != null) {
-			lock.lock();
-			if (currentActivity.getEnd() == null) {
-				currentActivity.setEnd(LocalDateTime.now());
-			}
-			returnActivity = currentActivity;
-			currentActivity = null;
-			lock.unlock();
+		if ((currentActivity != null) && (currentActivity.getEnd() == null)) {
+			return endActivity(LocalDateTime.now());
 		}
+		currentActivity = null;
 		return returnActivity;
 	}
 
@@ -156,13 +144,16 @@ public class Task implements Serializable {
 	 * @see #startActivity()
 	 * @see #endActivity()
 	 */
-	public void endActivity(LocalDateTime time) {
+	public Activity endActivity(LocalDateTime time) {
+		Activity returnActivity = null;
 		if (currentActivity != null) {
 			lock.lock();
 			currentActivity.setEnd(LocalDateTime.now());
+			returnActivity = currentActivity;
 			currentActivity = null;
 			lock.unlock();
 		}
+		return returnActivity;
 	}
 
 	/**
@@ -195,10 +186,7 @@ public class Task implements Serializable {
 	public Duration getDuration(LocalDate date) {
 		Duration total = Duration.ZERO;
 		// sum up the duration
-		return getActivities()
-				.stream()
-				.map(a -> a.getDuration(date))
-				.reduce(total, (t, u) -> t.plus(u));
+		return getActivities().stream().map(a -> a.getDuration(date)).reduce(total, (t, u) -> t.plus(u));
 	}
 
 	public String getTaskUrl() {
@@ -215,15 +203,6 @@ public class Task implements Serializable {
 
 	public void setTaskSummary(String taskSummary) {
 		this.taskSummary = taskSummary;
-	}
-
-	/**
-	 * Returns the last time the task was active and not idle
-	 * 
-	 * @return the last time the task was active and not idle
-	 */
-	public LocalDateTime getTick() {
-		return tick;
 	}
 
 	/**
@@ -260,15 +239,6 @@ public class Task implements Serializable {
 				this.setProject(project);
 			});
 		}
-	}
-
-	/**
-	 * Sets the last time the task was active while the user was not idle.
-	 * 
-	 * @param tick the tick time
-	 */
-	public void setTick(LocalDateTime tick) {
-		this.tick = tick;
 	}
 
 	/**
@@ -317,8 +287,8 @@ public class Task implements Serializable {
 
 	/**
 	 * Returns the referenced {@link ITask} if available. If not, it can be obtained
-	 * from {@link TimekeeperPlugin#getMylynTask(Task)} which will examine the
-	 * Mylyn task repository.
+	 * from {@link TimekeeperPlugin#getMylynTask(Task)} which will examine the Mylyn
+	 * task repository.
 	 * 
 	 * @return the {@link ITask} or <code>null</code>
 	 */
@@ -334,7 +304,7 @@ public class Task implements Serializable {
 		this.taskProject = project;
 		this.taskProject.addTask(this);
 	}
-	
+
 	public TaskLinkStatus getTaskLinkStatus() {
 		return taskLinkStatus;
 	}

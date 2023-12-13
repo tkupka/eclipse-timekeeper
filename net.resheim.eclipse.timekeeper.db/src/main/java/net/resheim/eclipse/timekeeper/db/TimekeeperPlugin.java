@@ -370,6 +370,16 @@ public class TimekeeperPlugin extends Plugin {
 		}
 	}
 
+	public Task endTaskActivity(ITask mylynTask, LocalDateTime endTime, boolean reactivate) {
+		Task task = getTask(mylynTask);
+		task.endActivity(endTime);
+		if (reactivate) {
+			task.startActivity();
+		}
+		persistTask(task);
+		return task;
+		
+	}
 	public Task persistTask(Task task) {
 
 		EntityTransaction transaction = entityManager.getTransaction();
