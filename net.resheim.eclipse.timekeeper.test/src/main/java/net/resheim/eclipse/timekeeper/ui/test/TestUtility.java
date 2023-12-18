@@ -13,8 +13,6 @@ import java.time.temporal.WeekFields;
 import java.util.Locale;
 import java.util.Optional;
 
-import javax.persistence.EntityTransaction;
-
 import org.eclipse.mylyn.internal.tasks.core.AbstractTaskCategory;
 import org.eclipse.mylyn.internal.tasks.core.LocalTask;
 import org.eclipse.mylyn.internal.tasks.core.TaskCategory;
@@ -53,10 +51,10 @@ public class TestUtility {
 		a.setStart(start.minus(Duration.ofHours(1)));
 		a.setEnd(start);
 		// save the new task (do we really need to)?
-		EntityTransaction transaction = TimekeeperPlugin.getDefault().getEntityManager().getTransaction();
-		transaction.begin();
-		TimekeeperPlugin.getDefault().getEntityManager().persist(ttask);
-		transaction.commit();
+//		EntityTransaction transaction = TimekeeperPlugin.getDefault().getEntityManager().getTransaction();
+//		transaction.begin();
+		TimekeeperPlugin.getDefault().getTimekeeperService().persistTask(ttask);
+//		transaction.commit();
 	}
 
 	static Task createTask(TaskList tl, String category, String id, String text) {
@@ -68,7 +66,7 @@ public class TestUtility {
 		});
 		ITask task = new LocalTask(id, text);
 		tl.addTask(task, c);
-		return new Task(task);
+		return TimekeeperPlugin.getDefault().getTimekeeperService().createTask(task);
 	}
 
 	/**

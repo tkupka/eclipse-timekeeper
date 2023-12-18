@@ -56,8 +56,8 @@ public class TemplateExporter extends AbstractExporter {
 			Template template = configuration.getTemplate(reportTemplate.getName());
 			StringWriter out = new StringWriter();
 
-			Set<Task>filtered = TimekeeperPlugin.getDefault()
-					.getTasks(firstDateOfWeek)
+			Set<Task>filtered = TimekeeperPlugin.getDefault().getTimekeeperService()
+					.findTasksForWeek(firstDateOfWeek)
 					.collect(Collectors.toSet());
 
 			// create the objects we're reporting on

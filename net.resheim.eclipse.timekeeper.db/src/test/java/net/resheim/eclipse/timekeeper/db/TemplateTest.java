@@ -30,7 +30,6 @@ import java.util.stream.Stream;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityTransaction;
 import javax.persistence.Query;
-import javax.persistence.TypedQuery;
 
 import org.eclipse.mylyn.internal.tasks.core.AbstractTask;
 import org.eclipse.mylyn.internal.tasks.core.LocalTask;
@@ -71,25 +70,27 @@ public class TemplateTest {
 
 	private final String[] VERBS = { "investigated", "fixed", "studied" };
 	private final String[] SUBJECTS = { "weird code", "annoying bug", "new feature", "build service" };
-	private static EntityManager entityManager;
 
-	static {
-		entityManager = PersistenceHelper.getEntityManager();
-	}
-
+	private TimekeeperService service;
 	static Configuration configuration;
 
 	@BeforeAll
 	public static void before() throws IOException {
 		configuration = new Configuration(Configuration.VERSION_2_3_27);
 		configuration.setTemplateLoader(new FileTemplateLoader(new File("./templates/")));
-		TimekeeperPlugin.getDefault().setEntityManager(entityManager);
 		Files.createDirectories(Paths.get("./test-reports"));
+	}
+
+	@BeforeEach
+	void setUpDb() {
+		service = new TimekeeperService("jdbc:h2:mem:test_mem", false);
 	}
 
 	@AfterEach
 	public void after() {
 		// empty all tables
+
+		EntityManager entityManager = service.getEntityManagerFactory().createEntityManager();
 		EntityTransaction transaction = entityManager.getTransaction();
 		if (transaction.isActive()) {
 			transaction.rollback();
@@ -99,19 +100,20 @@ public class TemplateTest {
 
 		Query createQuery = entityManager.createNativeQuery("SET REFERENTIAL_INTEGRITY FALSE");
 		createQuery.executeUpdate();
-		createQuery = entityManager.createNativeQuery("TRUNCATE TABLE ACTIVITY");
-		createQuery.executeUpdate();
-		createQuery = entityManager.createNativeQuery("TRUNCATE TABLE PROJECT_TYPE");
-		createQuery.executeUpdate();
-		createQuery = entityManager.createNativeQuery("TRUNCATE TABLE PROJECT_TASK");
-		createQuery.executeUpdate();
-		createQuery = entityManager.createNativeQuery("TRUNCATE TABLE TASK");
-		createQuery.executeUpdate();
+		Query query = entityManager.createQuery("DELETE FROM Activity");
+		query.executeUpdate();
+		query = entityManager.createQuery("DELETE FROM ProjectType");
+		query.executeUpdate();
+		query = entityManager.createQuery("DELETE FROM Task");
+		query.executeUpdate();
+		query = entityManager.createQuery("DELETE FROM Project");
+		query.executeUpdate();
 		createQuery = entityManager.createNativeQuery("SET REFERENTIAL_INTEGRITY TRUE");
 		createQuery.executeUpdate();
 
 		entityManager.flush();
 		transaction.commit();
+		service.closePersistence();
 	}
 
 	@ParameterizedTest
@@ -146,13 +148,6 @@ public class TemplateTest {
 		return Files.list(Paths.get("templates")).map(f -> f.getFileName().toString());
 	}
 
-	private void persist(Task ttask) {
-		EntityTransaction transaction = entityManager.getTransaction();
-		transaction.begin();
-		entityManager.persist(ttask);
-		transaction.commit();
-	}
-
 	/**
 	 * Creates a number of tasks for use in the template test.
 	 */
@@ -170,7 +165,8 @@ public class TemplateTest {
 			AbstractTask mylynTask = new LocalTask(String.valueOf(i), "Task #" + i);
 //			tasks.add(mylynTask);
 			tl.addTask(mylynTask, projects[i % 2]);
-			Task task = new Task(mylynTask);
+			mylynTask.setRepositoryUrl("test");
+			Task task = service.createTask(mylynTask);
 			// for each task, create one activity
 			for (int d = 1; d < 3 + (d % i); d++) {
 				int offset = d + i - 2;
@@ -188,7 +184,7 @@ public class TemplateTest {
 				if (si == VERBS.length)
 					si = 0;
 			}
-			persist(task);
+			service.persistTask(task);
 			tasks.add(task);
 		}
 		return tasks;

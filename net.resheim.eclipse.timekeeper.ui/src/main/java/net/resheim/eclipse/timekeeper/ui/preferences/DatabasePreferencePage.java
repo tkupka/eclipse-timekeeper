@@ -88,7 +88,7 @@ public class DatabasePreferencePage extends FieldEditorPreferencePage implements
 					Shell shell = g.getShell();
 					Job job = Job.create("Export Timekeeper database", (ICoreRunnable) monitor -> {
 						try {
-							int count = TimekeeperPlugin.getDefault().exportTo(location);
+							int count = TimekeeperPlugin.getDefault().getTimekeeperService().exportTo(location);
 							shell.getDisplay().asyncExec(() -> {
 								MessageDialog.openInformation(shell, Messages.DatabasePreferences_DataExported,
 										String.format(Messages.DatabasePreferences_ExportMessage, count));
@@ -137,7 +137,7 @@ public class DatabasePreferencePage extends FieldEditorPreferencePage implements
 							.findView(WorkWeekView.VIEW_ID);
 					Job job = Job.create("Import Timekeeper database", (ICoreRunnable) monitor -> {
 						try {
-							int i = TimekeeperPlugin.getDefault().importFrom(location);
+							int i = TimekeeperPlugin.getDefault().getTimekeeperService().importFrom(location);
 							shell.getDisplay().asyncExec(() -> {
 								// the view may not be open
 								if (showView != null) {

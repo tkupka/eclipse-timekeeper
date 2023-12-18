@@ -16,8 +16,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -36,12 +36,9 @@ import javax.persistence.Table;
 import javax.persistence.Transient;
 
 import org.eclipse.mylyn.internal.tasks.core.AbstractTask;
-import org.eclipse.mylyn.internal.tasks.core.AbstractTaskCategory;
-import org.eclipse.mylyn.internal.tasks.core.AbstractTaskContainer;
-import org.eclipse.mylyn.internal.tasks.core.RepositoryQuery;
 import org.eclipse.mylyn.tasks.core.ITask;
 
-import net.resheim.eclipse.timekeeper.db.TimekeeperPlugin;
+import net.resheim.eclipse.timekeeper.db.TimekeeperService;
 
 /**
  * A {@link Task} is the persisted link to an {@link AbstractTask}. It holds a
@@ -85,11 +82,8 @@ public class Task implements Serializable {
 	private Activity currentActivity;
 
 	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-	private List<Activity> activities;
+	private List<Activity> activities = new ArrayList<>();
 
-	/** Optional link to a Mylyn task */
-	@Transient
-	private transient ITask mylynTask;
 
 	/**
 	 * Used to determine whether or not this task has been linked to a corresponding
@@ -98,8 +92,14 @@ public class Task implements Serializable {
 	@Transient
 	private transient TaskLinkStatus taskLinkStatus = TaskLinkStatus.UNDETERMINED;
 
+	
+	
 	public Task() {
-		activities = new ArrayList<>();
+	}
+
+	public Task(String taskId, String repositoryUrl) {
+		this.taskId = taskId;
+		this.repositoryUrl = repositoryUrl;
 	}
 
 	/**
@@ -108,13 +108,13 @@ public class Task implements Serializable {
 	 * 
 	 * @param task the associated Mylyn task
 	 */
-	public Task(ITask task) {
-		this();
-		linkWithMylynTask(task);
-		if (taskProject != null) {
-			taskProject.addTask(this);
-		}
-	}
+//	public Task(ITask task) {
+//		this();
+//		linkWithMylynTask(task);
+//		if (taskProject != null) {
+//			taskProject.addTask(this);
+//		}
+//	}
 
 	public void addActivity(Activity activity) {
 		activities.add(activity);
@@ -210,36 +210,36 @@ public class Task implements Serializable {
 	 * 
 	 * @param task the Mylyn task
 	 */
-	public void linkWithMylynTask(ITask task) {
-		// associate this tracked task with the Mylyn task
-		this.mylynTask = task;
-		taskId = task.getTaskId();
-		repositoryUrl = TimekeeperPlugin.getRepositoryUrl(task);
-		taskUrl = task.getUrl();
-		taskSummary = task.getSummary();
-
-		// figure out the project name and set this
-		if (task instanceof AbstractTask) {
-			Set<AbstractTaskContainer> parentContainers = ((AbstractTask) task).getParentContainers();
-			parentContainers.forEach(p -> {
-				String projectName = null;
-				// it's a remote task
-				if (p instanceof RepositoryQuery) {
-					projectName = TimekeeperPlugin.getMylynProjectName(task);
-				}
-				// it's a local task
-				if (p instanceof AbstractTaskCategory) {
-					projectName = p.getSummary();
-				}
-				// the project is probably already in the database
-				Project project = TimekeeperPlugin.getDefault().getProject(projectName);
-				if (project == null) {
-					project = TimekeeperPlugin.getDefault().createAndSaveProject(task);
-				}
-				this.setProject(project);
-			});
-		}
-	}
+//	public void linkWithMylynTask(ITask task) {
+//		// associate this tracked task with the Mylyn task
+//		this.mylynTask = task;
+//		taskId = task.getTaskId();
+//		repositoryUrl = TimekeeperPlugin.getRepositoryUrl(task);
+//		taskUrl = task.getUrl();
+//		taskSummary = task.getSummary();
+//
+//		// figure out the project name and set this
+//		if (task instanceof AbstractTask) {
+//			Set<AbstractTaskContainer> parentContainers = ((AbstractTask) task).getParentContainers();
+//			parentContainers.forEach(p -> {
+//				String projectName = null;
+//				// it's a remote task
+//				if (p instanceof RepositoryQuery) {
+//					projectName = TimekeeperPlugin.getMylynProjectName(task);
+//				}
+//				// it's a local task
+//				if (p instanceof AbstractTaskCategory) {
+//					projectName = p.getSummary();
+//				}
+//				// the project is probably already in the database
+//				Project project = TimekeeperPlugin.getDefault().getProject(projectName);
+//				if (project == null) {
+//					project = TimekeeperPlugin.getDefault().createAndSaveProject(task);
+//				}
+//				this.setProject(project);
+//			});
+//		}
+//	}
 
 	/**
 	 * Starts a new activity and sets this as the current activity. If there is
@@ -267,9 +267,9 @@ public class Task implements Serializable {
 	 * @return the repository URL or "local"
 	 */
 	public String getRepositoryUrl() {
-		if (repositoryUrl.startsWith("local-")) {
-			return TimekeeperPlugin.KIND_LOCAL;
-		}
+//		if (repositoryUrl.startsWith("local-")) {
+//			return TimekeeperService.KIND_LOCAL;
+//		}
 		return repositoryUrl;
 	}
 
@@ -285,16 +285,7 @@ public class Task implements Serializable {
 		return taskId;
 	}
 
-	/**
-	 * Returns the referenced {@link ITask} if available. If not, it can be obtained
-	 * from {@link TimekeeperPlugin#getMylynTask(Task)} which will examine the Mylyn
-	 * task repository.
-	 * 
-	 * @return the {@link ITask} or <code>null</code>
-	 */
-	public ITask getMylynTask() {
-		return mylynTask;
-	}
+
 
 	public Project getProject() {
 		return taskProject;
@@ -313,12 +304,31 @@ public class Task implements Serializable {
 		this.taskLinkStatus = taskLinkStatus;
 	}
 
+	@Override
 	public String toString() {
-		StringBuilder sb = new StringBuilder();
-		sb.append(taskId);
-		sb.append(": ");
-		sb.append(getTaskSummary());
-		return sb.toString();
+		return "Task [repositoryUrl=" + repositoryUrl + ", taskId=" + taskId + ", taskProject=" + taskProject
+				+ ", taskUrl=" + taskUrl + ", taskSummary=" + taskSummary + ", currentActivity=" + currentActivity
+				+ "]";
 	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(repositoryUrl, taskId);
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Task other = (Task) obj;
+		return Objects.equals(repositoryUrl, other.repositoryUrl) && Objects.equals(taskId, other.taskId);
+	}
+
+	
+	
 
 }

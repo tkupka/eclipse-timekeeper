@@ -17,10 +17,12 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.WeekFields;
+import java.util.Calendar;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.function.BiFunction;
 
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.eclipse.core.runtime.Platform;
@@ -44,6 +46,7 @@ import org.osgi.framework.BundleContext;
 import net.resheim.eclipse.timekeeper.db.TimekeeperPlugin;
 import net.resheim.eclipse.timekeeper.db.model.Activity;
 import net.resheim.eclipse.timekeeper.db.model.Task;
+import net.resheim.eclipse.timekeeper.internal.DBConnector;
 import net.resheim.eclipse.timekeeper.internal.idle.GenericIdleTimeDetector;
 import net.resheim.eclipse.timekeeper.internal.idle.IdleTimeDetector;
 import net.resheim.eclipse.timekeeper.internal.idle.MacIdleTimeDetector;
@@ -64,6 +67,7 @@ public class TimekeeperUiPlugin extends AbstractUIPlugin implements IPropertyCha
 	private static long lastIdleTimeMillis;
 
 	private static TimekeeperUiPlugin plugin;
+	private final DBConnector dbConnector = new DBConnector();
 
 	public static final String PLUGIN_ID = "net.resheim.eclipse.timekeeper.ui"; //$NON-NLS-1$
 
@@ -79,6 +83,10 @@ public class TimekeeperUiPlugin extends AbstractUIPlugin implements IPropertyCha
 	 */
 	public static TimekeeperUiPlugin getDefault() {
 		return plugin;
+	}
+
+	public DBConnector getDbConnector() {
+		return dbConnector;
 	}
 
 	@Override
@@ -190,15 +198,15 @@ public class TimekeeperUiPlugin extends AbstractUIPlugin implements IPropertyCha
 						dialogIsOpen = false;
 						if (open == 1) {
 							// set time to the last activity detected
-							//ttask.endActivity(lastActiveTime);
+							// ttask.endActivity(lastActiveTime);
 							// and create a new activity
-							//ttask.startActivity();
+							// ttask.startActivity();
 							reactivate = true;
 						}
 					} else {
 						// If the user has been idle long enough to be
 						// considered away, the idle time will be ignored
-						//ttask.endActivity(lastActiveTime);
+						// ttask.endActivity(lastActiveTime);
 						String duration = DurationFormatUtils.formatDuration(lastIdleTimeMillis, "H:mm:ss", true);
 						if (afkDeactivate) {
 							TasksUi.getTaskActivityManager().deactivateTask(task);
@@ -210,7 +218,8 @@ public class TimekeeperUiPlugin extends AbstractUIPlugin implements IPropertyCha
 													DateTimeFormatter.ofPattern("EEE e, HH:mm:ss", Locale.US))));
 						}
 					}
-					TimekeeperPlugin.getDefault().endTaskActivity(task, lastActiveTime, reactivate);
+					TimekeeperPlugin.getDefault().getTimekeeperService().endTaskActivity(task, lastActiveTime,
+							reactivate);
 				}
 			}
 		}
@@ -239,7 +248,7 @@ public class TimekeeperUiPlugin extends AbstractUIPlugin implements IPropertyCha
 	public LocalDateTime getActiveSince() {
 		ITask task = TasksUi.getTaskActivityManager().getActiveTask();
 		if (task != null) {
-			Task trackedTask = TimekeeperPlugin.getDefault().getTask(task);
+			Task trackedTask = TimekeeperUiPlugin.getDefault().getDbConnector().getTask(task);
 			if (trackedTask != null) {
 				Optional<Activity> currentActivity = trackedTask.getCurrentActivity();
 				if (currentActivity.isPresent()) {
@@ -331,6 +340,15 @@ public class TimekeeperUiPlugin extends AbstractUIPlugin implements IPropertyCha
 				display.addFilter(SWT.MouseUp, reactivationListener);
 			}
 		});
+
+		timer.schedule(new TimerTask() {
+
+			@Override
+			public void run() {
+				cleanTaskActivities();
+
+			}
+		}, SHORT_INTERVAL);
 	}
 
 	@Override
@@ -367,10 +385,35 @@ public class TimekeeperUiPlugin extends AbstractUIPlugin implements IPropertyCha
 	public static Task getActiveTrackedTask() {
 		ITask task = TasksUi.getTaskActivityManager().getActiveTask();
 		if (task != null) {
-			return TimekeeperPlugin.getDefault().getTask(task);
+			return TimekeeperUiPlugin.getDefault().getDbConnector().getTask(task);
 		} else {
 			return null;
 		}
+	}
+
+	/**
+	 * In some cases the Mylyn task can be deactivated without the tracked task
+	 * being properly updated. This can happen for instance when the workbench is
+	 * closed before the database has been updated. In this case some guesswork is
+	 * applied using data from Mylyn.
+	 */
+	private void cleanTaskActivities() {
+		while (!TimekeeperPlugin.getDefault().isReady()) {
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				// nothing
+			}
+
+		}
+		dbConnector.findAllTasks()
+		.forEach(task -> {
+			ITask mylynTask = TaskUtils.getMylynTask(task);
+			BiFunction<Calendar, Calendar, Long> elapsedTimeProvider = (s, e) ->
+			TasksUi.getTaskActivityManager().getElapsedTime(mylynTask, s, e);
+			dbConnector.cleanUpTask(task, mylynTask, elapsedTimeProvider);
+
+		});
 	}
 
 }

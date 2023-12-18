@@ -69,7 +69,6 @@ Export-Package: net.resheim.eclipse.timekeeper.db,
  org.h2.value.lob
 Bundle-RequiredExecutionEnvironment: JavaSE-17
 Require-Bundle: org.eclipse.mylyn.tasks.core,
- org.eclipse.mylyn.tasks.ui,
  org.eclipse.mylyn.commons.notifications.core;bundle-version="4.0.0",
  org.eclipse.core.runtime,
  org.eclipse.core.net,

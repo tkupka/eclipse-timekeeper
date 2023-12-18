@@ -28,12 +28,12 @@ public class TaskActivationListener implements ITaskActivationListener {
 
 	@Override
 	public void preTaskActivated(ITask task) {
-		TimekeeperPlugin.getDefault().startMylynTask(task);
+		TimekeeperPlugin.getDefault().getTimekeeperService().startMylynTask(task);
 	}
 
 	@Override
 	public void preTaskDeactivated(ITask task) {
-		TimekeeperPlugin.getDefault().endMylynTask(task);
+		TimekeeperPlugin.getDefault().getTimekeeperService().endMylynTask(task);
 	}
 
 	@Override

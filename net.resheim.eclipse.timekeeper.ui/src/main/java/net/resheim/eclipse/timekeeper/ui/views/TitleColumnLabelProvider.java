@@ -31,6 +31,7 @@ import org.eclipse.swt.graphics.Image;
 import net.resheim.eclipse.timekeeper.db.model.Activity;
 import net.resheim.eclipse.timekeeper.db.model.Project;
 import net.resheim.eclipse.timekeeper.db.model.Task;
+import net.resheim.eclipse.timekeeper.ui.TaskUtils;
 import net.resheim.eclipse.timekeeper.ui.TimekeeperUiPlugin;
 
 /**
@@ -82,7 +83,7 @@ class TitleColumnLabelProvider extends TimeColumnLabelProvider {
 		}
 
 		if (object instanceof Task) {
-			ITask task = ((Task) object).getMylynTask();
+			ITask task = TaskUtils.resolveMylynTask((Task) object);
 			if (task == null) {
 				compositeDescriptor.icon = TasksUiImages.TASK;
 				return compositeDescriptor;
@@ -121,13 +122,15 @@ class TitleColumnLabelProvider extends TimeColumnLabelProvider {
 			return ((Project) element).getName();
 		}
 		if (element instanceof Task) {
-			ITask itask = ((Task) element).getMylynTask();
+			ITask itask = TaskUtils.resolveMylynTask((Task) element);
 			Task task = (Task) element;
 			StringBuilder sb = new StringBuilder();
 			if (itask != null && itask.getTaskId() != null) {
 				Optional.ofNullable(itask.getTaskKey())
-					.ifPresentOrElse(sb::append, () -> sb.append(itask.getTaskId()));
+				.ifPresentOrElse(sb::append, () -> sb.append(itask.getTaskId()));
 				sb.append(": ");
+			} else {
+				sb.append(task.getTaskId()).append(": ");
 			}
 			sb.append(task.getTaskSummary());
 			return sb.toString();

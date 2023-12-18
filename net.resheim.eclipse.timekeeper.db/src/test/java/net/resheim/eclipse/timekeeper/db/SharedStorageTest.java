@@ -10,8 +10,6 @@
  *******************************************************************************/
 package net.resheim.eclipse.timekeeper.db;
 
-
-
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.time.Duration;
@@ -27,34 +25,32 @@ import org.eclipse.mylyn.tasks.core.ITask;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 
 import net.resheim.eclipse.timekeeper.db.model.Activity;
 import net.resheim.eclipse.timekeeper.db.model.GlobalTaskId;
+import net.resheim.eclipse.timekeeper.db.model.Project;
 import net.resheim.eclipse.timekeeper.db.model.Task;
 
 @SuppressWarnings("restriction")
 @TestInstance(Lifecycle.PER_CLASS)
 public class SharedStorageTest {
-	
-	private static EntityManager entityManager;
-	
+
 	public static final String KEY_VALUELIST_ID = "net.resheim.eclipse.timekeeper"; //$NON-NLS-1$
 
 	public static final String KV_SEPARATOR = "="; //$NON-NLS-1$
 
 	public static final String PAIR_SEPARATOR = ";"; //$NON-NLS-1$
 
-	//------------------------------------------------------------------------
+	// ------------------------------------------------------------------------
 	// Migration test
-	//------------------------------------------------------------------------
+	// ------------------------------------------------------------------------
 	static long remainder = 0;
-	
-	static {
-		entityManager = PersistenceHelper.getEntityManager(); 
-	}
+
+	private TimekeeperService service;
 
 	synchronized static void accumulateTime(ITask task, String dateString, long millis) {
 		millis = millis + remainder;
@@ -76,7 +72,7 @@ public class SharedStorageTest {
 	/**
 	 * 
 	 * @param task
-	 * @param key date "start" or "tick"
+	 * @param key  date "start" or "tick"
 	 * @return
 	 */
 	public static String getValue(ITask task, String key) {
@@ -100,12 +96,9 @@ public class SharedStorageTest {
 	/**
 	 * Sets a value in the Mylyn database for the specified task.
 	 *
-	 * @param task
-	 *            the task to set a value for
-	 * @param key
-	 *            the key for the value
-	 * @param value
-	 *            the value associated with the key
+	 * @param task  the task to set a value for
+	 * @param key   the key for the value
+	 * @param value the value associated with the key
 	 */
 	public static void setValue(ITask task, String key, String value) {
 		StringBuilder sb = new StringBuilder();
@@ -138,22 +131,25 @@ public class SharedStorageTest {
 				sb.append(key);
 				sb.append('=');
 				sb.append(value);
-	
+
 			}
 		}
 		task.setAttribute(KEY_VALUELIST_ID, sb.toString());
 	}
-	
+
 	private LocalTask mylynTask;
 
-	@BeforeAll
+	@BeforeEach
 	public void before() {
+		service = new TimekeeperService("jdbc:h2:mem:test_mem", false);
 		mylynTask = new LocalTask("1", "TestmylynTask");
+		mylynTask.setRepositoryUrl("test");
 	}
 
 	@AfterEach
 	public void after() {
 		// empty all tables
+		EntityManager entityManager = service.getEntityManagerFactory().createEntityManager();
 		EntityTransaction transaction = entityManager.getTransaction();
 		if (transaction.isActive()) {
 			transaction.rollback();
@@ -162,40 +158,36 @@ public class SharedStorageTest {
 		transaction.begin();
 		Query createQuery = entityManager.createNativeQuery("SET REFERENTIAL_INTEGRITY FALSE");
 		createQuery.executeUpdate();
-		createQuery = entityManager.createNativeQuery("TRUNCATE TABLE ACTIVITY");
-		createQuery.executeUpdate();
-		createQuery = entityManager.createNativeQuery("TRUNCATE TABLE PROJECT_TYPE");
-		createQuery.executeUpdate();
-		createQuery = entityManager.createNativeQuery("TRUNCATE TABLE PROJECT_TASK");
-		createQuery.executeUpdate();
-		createQuery = entityManager.createNativeQuery("TRUNCATE TABLE TASK");
-		createQuery.executeUpdate();
+		Query query = entityManager.createQuery("DELETE FROM Activity");
+		query.executeUpdate();
+		query = entityManager.createQuery("DELETE FROM ProjectType");
+		query.executeUpdate();
+		query = entityManager.createQuery("DELETE FROM Task");
+		query.executeUpdate();
+		query = entityManager.createQuery("DELETE FROM Project");
+		query.executeUpdate();
 		createQuery = entityManager.createNativeQuery("SET REFERENTIAL_INTEGRITY TRUE");
 		createQuery.executeUpdate();
 		entityManager.flush();
 		transaction.commit();
-	}
-
-	private void persist(Task ttask) {
-		EntityTransaction transaction = entityManager.getTransaction();
-		transaction.begin();
-		entityManager.persist(ttask);
-		transaction.commit();
+		entityManager.clear();
+		service.closePersistence();
 	}
 
 	@Test
 	public void testSimpleTaskPersistence() {
-		Task ttask = new Task(mylynTask);
+		Task ttask = service.createTask(mylynTask); // new Task(mylynTask);
 		LocalDateTime now = LocalDateTime.now();
-		Activity a = new Activity(ttask,now);
+		Activity a = new Activity(ttask, now);
 		ttask.addActivity(a);
 		a.setStart(now.minus(Duration.ofHours(1)));
 		a.setEnd(now);
-		persist(ttask);
+		service.persistTask(ttask);
 
 		// now attempt to load the task from the persistent storage
 		GlobalTaskId id = new GlobalTaskId(ttask.getRepositoryUrl(), ttask.getTaskId());
-		Task dbTask = entityManager.find(Task.class, id);
+		// Task dbTask = entityManager.find(Task.class, id);
+		Task dbTask = service.getTask(mylynTask);
 		// Test the single task
 		if (dbTask instanceof Task) {
 			List<Activity> activities = ((Task) dbTask).getActivities();
@@ -212,7 +204,7 @@ public class SharedStorageTest {
 	 */
 	@Test
 	public void testTrackedTask_getDuration() {
-		Task task = new Task(mylynTask);
+		Task task = service.createTask(mylynTask);// new Task(mylynTask);
 
 		LocalDateTime start = LocalDateTime.of(2016, 3, 14, 22, 0);
 		LocalDateTime start2 = LocalDateTime.of(2016, 3, 16, 0, 0);
@@ -234,11 +226,12 @@ public class SharedStorageTest {
 		a3.setEnd(start2.plusHours(25));
 
 		// store
-		persist(task);
+		service.persistTask(task);
 
 		// now attempt to load the task from the persistent storage
-		GlobalTaskId id = new GlobalTaskId(task.getRepositoryUrl(), task.getTaskId());
-		Task dbTask = entityManager.find(Task.class, id);
+//		GlobalTaskId id = new GlobalTaskId(task.getRepositoryUrl(), task.getTaskId());
+		// Task dbTask = entityManager.find(Task.class, id);
+		Task dbTask = service.getTask(mylynTask);
 
 		// verify that the accumulated duration is correct
 		if (dbTask instanceof Task) {
@@ -247,7 +240,8 @@ public class SharedStorageTest {
 			Assertions.assertEquals(Duration.ofHours(4), trackedTask.getDuration(start.toLocalDate()));
 			// total work on the 16th of March should be 24 hours
 			Assertions.assertEquals(Duration.ofHours(24), trackedTask.getDuration(start2.toLocalDate()));
-		} else fail("Could not find task");
+		} else
+			fail("Could not find task");
 	}
 
 }

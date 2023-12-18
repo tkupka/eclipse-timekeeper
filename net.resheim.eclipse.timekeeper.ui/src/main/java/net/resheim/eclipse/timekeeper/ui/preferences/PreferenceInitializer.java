@@ -29,21 +29,21 @@ public class PreferenceInitializer extends AbstractPreferenceInitializer {
 		}
 
 		// Add default activity labels if the database is empty
-		if (TimekeeperPlugin.getDefault().getLabels().count() == 0) {
-			TimekeeperPlugin.getDefault()
-					.setLabel(new ActivityLabel("Production issue", StringConverter.asString(new RGB(244, 103, 88))));
-			TimekeeperPlugin.getDefault()
-					.setLabel(new ActivityLabel("Testing", StringConverter.asString(new RGB(245, 166, 81))));
-			TimekeeperPlugin.getDefault()
-					.setLabel(new ActivityLabel("Prototyping", StringConverter.asString(new RGB(246, 208, 90))));
-			TimekeeperPlugin.getDefault()
-					.setLabel(new ActivityLabel("Programming", StringConverter.asString(new RGB(87, 206, 105))));
-			TimekeeperPlugin.getDefault()
-					.setLabel(new ActivityLabel("Debugging", StringConverter.asString(new RGB(177, 111, 209))));
-			TimekeeperPlugin.getDefault()
-					.setLabel(new ActivityLabel("Communication", StringConverter.asString(new RGB(66, 136, 243))));
-			TimekeeperPlugin.getDefault()
-					.setLabel(new ActivityLabel("Meeting", StringConverter.asString(new RGB(156, 156, 160))));
+		if (TimekeeperPlugin.getDefault().getTimekeeperService().getLabels().count() == 0) {
+			TimekeeperPlugin.getDefault().getTimekeeperService()
+			.setLabel(new ActivityLabel("Production issue", StringConverter.asString(new RGB(244, 103, 88))));
+			TimekeeperPlugin.getDefault().getTimekeeperService()
+			.setLabel(new ActivityLabel("Testing", StringConverter.asString(new RGB(245, 166, 81))));
+			TimekeeperPlugin.getDefault().getTimekeeperService()
+			.setLabel(new ActivityLabel("Prototyping", StringConverter.asString(new RGB(246, 208, 90))));
+			TimekeeperPlugin.getDefault().getTimekeeperService()
+			.setLabel(new ActivityLabel("Programming", StringConverter.asString(new RGB(87, 206, 105))));
+			TimekeeperPlugin.getDefault().getTimekeeperService()
+			.setLabel(new ActivityLabel("Debugging", StringConverter.asString(new RGB(177, 111, 209))));
+			TimekeeperPlugin.getDefault().getTimekeeperService()
+			.setLabel(new ActivityLabel("Communication", StringConverter.asString(new RGB(66, 136, 243))));
+			TimekeeperPlugin.getDefault().getTimekeeperService()
+			.setLabel(new ActivityLabel("Meeting", StringConverter.asString(new RGB(156, 156, 160))));
 		}
 
 	}

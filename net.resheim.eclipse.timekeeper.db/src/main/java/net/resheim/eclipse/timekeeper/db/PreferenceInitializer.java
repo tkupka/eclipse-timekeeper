@@ -35,7 +35,8 @@ import net.resheim.eclipse.timekeeper.db.report.ReportTemplate;
 public class PreferenceInitializer extends AbstractPreferenceInitializer {
 
 	@Override
-	public void initializeDefaultPreferences() {
+	public void initializeDefaultPreferences() {		
+		//TODO remove dependency to IU
 		IPreferenceStore store = new ScopedPreferenceStore(InstanceScope.INSTANCE, TimekeeperPlugin.BUNDLE_ID);
 		try {
 			store.setDefault(TimekeeperPlugin.PREF_DATABASE_LOCATION, TimekeeperPlugin.PREF_DATABASE_LOCATION_SHARED);

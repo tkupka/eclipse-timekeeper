@@ -35,7 +35,7 @@ public class TemplateExportMenu extends CompoundContributionItem implements IWor
 
 	@Override
 	protected IContributionItem[] getContributionItems() {
-		Map<String, ReportTemplate> templates = TimekeeperPlugin.getTemplates();
+		Map<String, ReportTemplate> templates = TimekeeperPlugin.getDefault().getTimekeeperService().getTemplates();
 		IMenuManager copyMenu = new MenuManager("Copy as");
 		IMenuManager saveMenu = new MenuManager("Save as");
 		for (String name : templates.keySet()) {

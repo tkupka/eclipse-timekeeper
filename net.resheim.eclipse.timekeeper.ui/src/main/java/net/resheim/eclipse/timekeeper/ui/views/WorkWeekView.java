@@ -13,6 +13,7 @@
 package net.resheim.eclipse.timekeeper.ui.views;
 
 import java.text.MessageFormat;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -33,6 +34,7 @@ import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.layout.GridLayoutFactory;
+import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.viewers.AbstractTreeViewer;
 import org.eclipse.jface.viewers.ColumnViewerToolTipSupport;
 import org.eclipse.jface.viewers.DoubleClickEvent;
@@ -48,6 +50,7 @@ import org.eclipse.jface.window.ToolTip;
 import org.eclipse.mylyn.internal.tasks.core.AbstractTask;
 import org.eclipse.mylyn.internal.tasks.core.ITaskListChangeListener;
 import org.eclipse.mylyn.internal.tasks.core.TaskContainerDelta;
+import org.eclipse.mylyn.internal.tasks.ui.ITasksUiPreferenceConstants;
 import org.eclipse.mylyn.internal.tasks.ui.TasksUiPlugin;
 import org.eclipse.mylyn.tasks.core.ITask;
 import org.eclipse.mylyn.tasks.core.ITaskActivationListener;
@@ -84,6 +87,7 @@ import net.resheim.eclipse.timekeeper.db.model.ActivityLabel;
 import net.resheim.eclipse.timekeeper.db.model.Project;
 import net.resheim.eclipse.timekeeper.db.model.Task;
 import net.resheim.eclipse.timekeeper.ui.ActivityLabelPainter;
+import net.resheim.eclipse.timekeeper.ui.TaskUtils;
 import net.resheim.eclipse.timekeeper.ui.TimekeeperUiPlugin;
 
 @SuppressWarnings("restriction")
@@ -299,10 +303,19 @@ public class WorkWeekView extends ViewPart {
 	}
 
 	private LocalDate calculateFirstDayOfWeek(LocalDate date) {
-		WeekFields weekFields = WeekFields.of(Locale.getDefault());
+		WeekFields weekFields = determineWeekFields();
 		long day = date.get(weekFields.dayOfWeek());
-		LocalDate firstDayOfWeek = date.minusDays(day - 1);
+		LocalDate firstDayOfWeek = date.minusDays(day);
 		return firstDayOfWeek;
+	}
+
+	private WeekFields determineWeekFields() {
+		IPreferenceStore preferenceStore = TasksUiPlugin.getDefault().getPreferenceStore();
+		int weekStart = preferenceStore.getInt(ITasksUiPreferenceConstants.WEEK_START_DAY);
+		DayOfWeek dow = DayOfWeek.SUNDAY.plus(weekStart);
+		// WeekFields weekFields = WeekFields.of(Locale.getDefault());
+		WeekFields weekFields = WeekFields.of(dow, 7);
+		return weekFields;
 	}
 
 	private void contributeToActionBars() {
@@ -430,9 +443,7 @@ public class WorkWeekView extends ViewPart {
 
 		// Determine the first date of the week
 		LocalDate date = LocalDate.now();
-		WeekFields weekFields = WeekFields.of(Locale.getDefault());
-		long day = date.get(weekFields.dayOfWeek());
-		contentProvider.setFirstDayOfWeek(date.minusDays(day - 1));
+		contentProvider.setFirstDayOfWeek(calculateFirstDayOfWeek(date));
 
 		makeActions();
 		hookContextMenu();
@@ -478,7 +489,7 @@ public class WorkWeekView extends ViewPart {
 					seconds = getSum(contentProvider.getFiltered(), date, (Project) element);
 				} else if (element instanceof ITask) {
 					AbstractTask task = (AbstractTask) element;
-					Task trackedTask = TimekeeperPlugin.getDefault().getTask(task);
+					Task trackedTask = TimekeeperUiPlugin.getDefault().getDbConnector().getTask(task);
 					if (trackedTask != null) {
 						seconds = trackedTask.getDuration(contentProvider.getDate(weekday)).getSeconds();
 					}
@@ -519,7 +530,7 @@ public class WorkWeekView extends ViewPart {
 		Object obj = ((IStructuredSelection) selection).getFirstElement();
 		if (obj instanceof Task) {
 			manager.add(new Separator("task"));
-			if (((Task) obj).getMylynTask().isActive()) {
+			if (TaskUtils.resolveMylynTask((Task) obj).isActive()) {
 				manager.add(deactivateAction);
 			} else {
 				manager.add(activateAction);
@@ -673,7 +684,7 @@ public class WorkWeekView extends ViewPart {
 				ISelection selection = viewer.getSelection();
 				Object obj = ((IStructuredSelection) selection).getFirstElement();
 				if (obj instanceof Task) {
-					TasksUiUtil.openTask(((Task) obj).getMylynTask());
+					TasksUiUtil.openTask(TaskUtils.resolveMylynTask((Task) obj));
 				}
 			}
 		};
@@ -685,7 +696,7 @@ public class WorkWeekView extends ViewPart {
 				ISelection selection = viewer.getSelection();
 				Object obj = ((IStructuredSelection) selection).getFirstElement();
 				if (obj instanceof Task) {
-					TasksUi.getTaskActivityManager().deactivateTask(((Task) obj).getMylynTask());
+					TasksUi.getTaskActivityManager().deactivateTask(TaskUtils.resolveMylynTask((Task) obj));
 				}
 			}
 		};
@@ -697,7 +708,7 @@ public class WorkWeekView extends ViewPart {
 				ISelection selection = viewer.getSelection();
 				Object obj = ((IStructuredSelection) selection).getFirstElement();
 				if (obj instanceof Task) {
-					TasksUi.getTaskActivityManager().activateTask(((Task) obj).getMylynTask());
+					TasksUi.getTaskActivityManager().activateTask(TaskUtils.resolveMylynTask((Task) obj));
 				}
 			}
 		};

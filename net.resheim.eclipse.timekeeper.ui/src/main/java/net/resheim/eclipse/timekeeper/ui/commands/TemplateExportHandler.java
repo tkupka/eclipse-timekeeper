@@ -54,7 +54,7 @@ public class TemplateExportHandler extends AbstractHandler implements IHandler {
 		Map<String, String> parameters = event.getParameters();
 		IWorkbenchPart activePart = HandlerUtil.getActivePart(event);
 		if (activePart instanceof WorkWeekView) {
-			Map<String, ReportTemplate> templates = TimekeeperPlugin.getTemplates();
+			Map<String, ReportTemplate> templates = TimekeeperPlugin.getDefault().getTimekeeperService().getTemplates();
 			LocalDate firstDayOfWeek = ((WorkWeekView) activePart).getFirstDayOfWeek();
 			ReportTemplate template = templates.get(parameters.get(COMMAND_PARAMETER_TEMPLATE_NAME));
 			TemplateExporter export = new TemplateExporter(template);

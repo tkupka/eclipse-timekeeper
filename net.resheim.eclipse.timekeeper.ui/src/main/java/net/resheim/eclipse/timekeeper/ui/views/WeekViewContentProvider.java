@@ -33,6 +33,7 @@ import net.resheim.eclipse.timekeeper.db.TimekeeperPlugin;
 import net.resheim.eclipse.timekeeper.db.model.Activity;
 import net.resheim.eclipse.timekeeper.db.model.Project;
 import net.resheim.eclipse.timekeeper.db.model.Task;
+import net.resheim.eclipse.timekeeper.ui.TimekeeperUiPlugin;
 
 @SuppressWarnings("restriction")
 public abstract class WeekViewContentProvider implements ITreeContentProvider, DatabaseChangeListener {
@@ -100,7 +101,7 @@ public abstract class WeekViewContentProvider implements ITreeContentProvider, D
 	@Override
 	public Object getParent(Object element) {
 		if (element instanceof ITask) {
-			return TimekeeperPlugin.getMylynProjectName((ITask) element);
+			return TimekeeperPlugin.getDefault().getTimekeeperService().getMylynProjectName((ITask) element);
 		}
 		return null;
 	}
@@ -122,8 +123,8 @@ public abstract class WeekViewContentProvider implements ITreeContentProvider, D
 	}
 
 	protected void filter() {
-		filtered = TimekeeperPlugin.getDefault()
-				.getTasks(getFirstDayOfWeek())
+		filtered = TimekeeperUiPlugin.getDefault().getDbConnector()
+				.findTasksForWeek(getFirstDayOfWeek())
 				.collect(Collectors.toSet());
 	}
 
@@ -148,7 +149,7 @@ public abstract class WeekViewContentProvider implements ITreeContentProvider, D
 				public void run() {
 					ITask activeTask = TasksUiPlugin.getTaskActivityManager().getActiveTask();
 					if (activeTask != null) {
-						filtered.add(TimekeeperPlugin.getDefault().getTask(activeTask));
+						filtered.add(TimekeeperUiPlugin.getDefault().getDbConnector().getTask(activeTask));
 					}
 					viewer.refresh();
 					if (viewer instanceof TreeViewer) {

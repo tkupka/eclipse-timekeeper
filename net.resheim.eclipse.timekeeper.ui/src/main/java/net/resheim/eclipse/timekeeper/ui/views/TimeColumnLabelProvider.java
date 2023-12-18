@@ -13,6 +13,7 @@ package net.resheim.eclipse.timekeeper.ui.views;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Objects;
 import java.util.Optional;
 
 import org.eclipse.jface.preference.JFacePreferences;
@@ -24,10 +25,10 @@ import org.eclipse.swt.graphics.Font;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.themes.IThemeManager;
 
-import net.resheim.eclipse.timekeeper.db.TimekeeperPlugin;
 import net.resheim.eclipse.timekeeper.db.model.Activity;
 import net.resheim.eclipse.timekeeper.db.model.Project;
 import net.resheim.eclipse.timekeeper.db.model.Task;
+import net.resheim.eclipse.timekeeper.ui.TaskUtils;
 
 /**
  * Provides label decorations for the columns containing time spent on each
@@ -54,15 +55,16 @@ abstract class TimeColumnLabelProvider extends ColumnLabelProvider {
 	@Override
 	public Font getFont(Object element) {
 		if (element instanceof Task) {
-			if (((Task) element).getMylynTask() != null && ((Task) element).getMylynTask().isActive()) {
+			Task task = (Task) element;
+			ITask mylynTask = TaskUtils.resolveMylynTask(task);
+			if (mylynTask != null && mylynTask.isActive()) {
 				return JFaceResources.getFontRegistry().getBold(JFaceResources.DIALOG_FONT);
 			}
 		}
 		if (element instanceof Activity) {
 			Task trackedTask = ((Activity) element).getTrackedTask();
-			TimekeeperPlugin.getDefault();
-			ITask task = trackedTask.getMylynTask();
-			if (task != null && task.isActive()) {
+			ITask mylynTask = TaskUtils.resolveMylynTask(trackedTask);
+			if (mylynTask != null && mylynTask.isActive()) {
 				if (trackedTask.getCurrentActivity().equals(Optional.of(element))) {
 					return JFaceResources.getFontRegistry().getBold(JFaceResources.DIALOG_FONT);
 				}
@@ -74,7 +76,8 @@ abstract class TimeColumnLabelProvider extends ColumnLabelProvider {
 					.getFiltered()
 					.stream()
 					.filter(t -> p.equals(t.getProject()))
-					.anyMatch(t -> t.getMylynTask().isActive())) {
+					.map(TaskUtils::resolveMylynTask).filter(Objects::nonNull)
+					.anyMatch(t -> t.isActive())) {
 				return JFaceResources.getFontRegistry().getBold(JFaceResources.DIALOG_FONT);
 			}
 
@@ -107,5 +110,4 @@ abstract class TimeColumnLabelProvider extends ColumnLabelProvider {
 		}
 		return super.getToolTipText(element);
 	}
-
 }

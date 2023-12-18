@@ -193,7 +193,7 @@ public class LabelPreferencePage extends PreferencePage implements IWorkbenchPre
 	}
 
 	private void initialize() {
-		editableLabels = TimekeeperPlugin.getDefault().getLabels().map(l -> new ActivityLabel(l))
+		editableLabels = TimekeeperPlugin.getDefault().getTimekeeperService().getLabels().map(l -> new ActivityLabel(l))
 				.collect(Collectors.toList());
 		fAppearanceColorTableViewer.setContentProvider(new IStructuredContentProvider() {
 			@Override
@@ -201,7 +201,8 @@ public class LabelPreferencePage extends PreferencePage implements IWorkbenchPre
 				return editableLabels.toArray();
 			}
 		});
-		fAppearanceColorTableViewer.setInput(TimekeeperPlugin.getDefault().getLabels().toArray());
+		fAppearanceColorTableViewer
+		.setInput(TimekeeperPlugin.getDefault().getTimekeeperService().getLabels().toArray());
 		fAppearanceColorTableViewer.setSelection(new StructuredSelection(fAppearanceColorTableViewer.getElementAt(0)),
 				true);
 	}
@@ -250,7 +251,7 @@ public class LabelPreferencePage extends PreferencePage implements IWorkbenchPre
 
 	private void updateDatabase() {
 
-		Map<String, ActivityLabel> savedLabels = TimekeeperPlugin.getDefault().getLabels()
+		Map<String, ActivityLabel> savedLabels = TimekeeperPlugin.getDefault().getTimekeeperService().getLabels()
 				.collect(Collectors.toMap(l -> l.getId(), l -> l));
 
 		Map<String, ActivityLabel> updatedLabels = editableLabels.stream()
@@ -258,7 +259,7 @@ public class LabelPreferencePage extends PreferencePage implements IWorkbenchPre
 
 		savedLabels.forEach((t, u) -> {
 			if (!updatedLabels.containsKey(t)) {
-				TimekeeperPlugin.getDefault().removeLabel(u);
+				TimekeeperPlugin.getDefault().getTimekeeperService().removeLabel(u);
 			}
 		});
 
@@ -267,9 +268,9 @@ public class LabelPreferencePage extends PreferencePage implements IWorkbenchPre
 			if (label != null) {
 				label.setColor(u.getColor());
 				label.setName(u.getName());
-				TimekeeperPlugin.getDefault().setLabel(label);
+				TimekeeperPlugin.getDefault().getTimekeeperService().setLabel(label);
 			} else {
-				TimekeeperPlugin.getDefault().setLabel(u);
+				TimekeeperPlugin.getDefault().getTimekeeperService().setLabel(u);
 			}
 		});
 

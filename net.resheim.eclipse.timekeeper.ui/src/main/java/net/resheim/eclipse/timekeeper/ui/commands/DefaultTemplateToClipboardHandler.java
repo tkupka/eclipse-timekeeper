@@ -47,7 +47,7 @@ public class DefaultTemplateToClipboardHandler extends AbstractHandler {
 	public Object execute(ExecutionEvent event) throws ExecutionException {
 		IWorkbenchPart activePart = HandlerUtil.getActivePart(event);
 		if (activePart instanceof WorkWeekView) {
-			Map<String, ReportTemplate> templates = TimekeeperPlugin.getTemplates();
+			Map<String, ReportTemplate> templates = TimekeeperPlugin.getDefault().getTimekeeperService().getTemplates();
 			IPreferenceStore store = new ScopedPreferenceStore(InstanceScope.INSTANCE, TimekeeperPlugin.BUNDLE_ID);
 			String defaultTemplate = store.getString(TimekeeperPlugin.PREF_DEFAULT_TEMPLATE);
 			LocalDate firstDayOfWeek = ((WorkWeekView) activePart).getFirstDayOfWeek();

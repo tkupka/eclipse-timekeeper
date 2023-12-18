@@ -23,6 +23,7 @@ import java.nio.file.Path;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.mylyn.internal.tasks.core.TaskList;
 import org.eclipse.mylyn.internal.tasks.ui.TasksUiPlugin;
+import org.eclipse.mylyn.tasks.core.ITask;
 import org.eclipse.mylyn.tasks.ui.TasksUi;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
@@ -51,9 +52,9 @@ import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import net.resheim.eclipse.timekeeper.db.DatabaseChangeListener;
 import net.resheim.eclipse.timekeeper.db.TimekeeperPlugin;
 import net.resheim.eclipse.timekeeper.db.model.Task;
+import net.resheim.eclipse.timekeeper.ui.TaskUtils;
 
 @SuppressWarnings("restriction")
 @RunWith(SWTBotJunit4ClassRunner.class)
@@ -111,23 +112,14 @@ public class IntegrationTest {
 			screenshotsDir.mkdirs();
 		}
 		// we need to wait until the database is ready
-		Object object = new Object();
 		log.info("Preparing database");
-		TimekeeperPlugin.getDefault().addListener(new DatabaseChangeListener() {			
-			@Override
-			public void databaseStateChanged() {
-				synchronized (object) {
-					object.notifyAll();
-				}
-			}
-		});
-		synchronized (object) {
+		while (!TimekeeperPlugin.getDefault().isReady()) {
 			try {
-				log.info("Waiting for database to become ready");
-				object.wait();
+				Thread.sleep(1000);
 			} catch (InterruptedException e) {
-				Thread.currentThread().interrupt();				
+				e.printStackTrace();
 			}
+			
 		}
 		log.info("Database is ready, proceeding with tests.");
 		tl = TasksUiPlugin.getTaskList();
@@ -139,7 +131,8 @@ public class IntegrationTest {
 			TestUtility.createActivity(1, ttask, "Rig test plug-in and make it take screenshots");
 			TestUtility.createActivity(1, ttask, "Add tests for the 'Workweek' view");
 			TestUtility.createActivity(3, ttask, "Add test for the preferences dialog");
-			TasksUi.getTaskActivityManager().activateTask(ttask.getMylynTask());
+			ITask mylynTask = TaskUtils.resolveMylynTask(ttask);
+			TasksUi.getTaskActivityManager().activateTask(mylynTask);
 			bot.sleep(500);
 			Task ttask_1 = TestUtility.createTask(tl, "Eclipse Science", "1", "Eclipse Science web site");
 			TestUtility.createActivity(3, ttask_1, "Send out e-mail about GitHub repo");
@@ -233,7 +226,7 @@ public class IntegrationTest {
 		try {
 			File newFolder = folder.newFolder();
 			Path path = newFolder.toPath();
-			TimekeeperPlugin.getDefault().exportTo(path);
+			TimekeeperPlugin.getDefault().getTimekeeperService().exportTo(path);
 			// probably don't have to verify that the content is correct as this is actually
 			// done by H2
 			Assert.assertEquals("\"TASK_ID\",\"REPOSITORY_URL\",\"TICK\",\"CURRENTACTIVITY_ID\"",
