@@ -116,7 +116,13 @@ jobs:
         password: ${{ secrets.FTP_PASSWORD }}
         localDir: "net.resheim.eclipse.timekeeper-site/target/repository"
         remoteDir: "timekeeper/release/latest"
-        
+
+    - name: Create TAG  Version
+      run: git tag ${{ inputs.nextVersion }}
+
+    - name: Push TAG  Version
+      run: git push origin ${{ inputs.nextVersion }}
+              
     - name: Set Next Version
       run: ./newVersion.sh ${{ inputs.nextVersion }}
 
