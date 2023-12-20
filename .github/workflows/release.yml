@@ -124,7 +124,7 @@ jobs:
       run: git push origin ${{ inputs.nextVersion }}
               
     - name: Set Next Version
-      run: chmod +X newVersion.sh;./newVersion.sh ${{ inputs.nextVersion }}
+      run: mvn org.eclipse.tycho:tycho-versions-plugin:set-version -DnewVersion=${{ inputs.nextVersion }}-SNAPSHOT
 
     - name: Commit new Version
       run: git commit -m "New version ${{ inputs.nextVersion }}";git push
