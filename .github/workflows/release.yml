@@ -118,10 +118,10 @@ jobs:
         remoteDir: "timekeeper/release/latest"
 
     - name: Create TAG  Version
-      run: git tag ${{ inputs.nextVersion }}
+      run: git tag ${{ env.VERSION }}
 
     - name: Push TAG  Version
-      run: git push origin ${{ inputs.nextVersion }}
+      run: git push origin ${{ env.VERSION }}
               
     - name: Set Next Version
       run: mvn org.eclipse.tycho:tycho-versions-plugin:set-version -DnewVersion=${{ inputs.nextVersion }}-SNAPSHOT
