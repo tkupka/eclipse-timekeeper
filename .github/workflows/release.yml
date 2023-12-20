@@ -127,6 +127,6 @@ jobs:
       run: mvn org.eclipse.tycho:tycho-versions-plugin:set-version -DnewVersion=${{ inputs.nextVersion }}-SNAPSHOT
 
     - name: Commit new Version
-      run: git commit -m "New version ${{ inputs.nextVersion }}";git push
+      run: git commit -m "New version ${{ inputs.nextVersion }}" --author "Tomas Kupka <safe01@volny.cz>";git push
 
       
