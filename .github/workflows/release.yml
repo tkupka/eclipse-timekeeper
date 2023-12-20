@@ -6,9 +6,9 @@ on:
   workflow_dispatch:
     # Inputs the workflow accepts.
     inputs:
-      name:
+      nextVersion:
         # Friendly description to be shown in the UI instead of 'name'
-        nextVersion: 'Next Version'
+        description: 'Next Version'
         # Default value if no value is explicitly provided
         default: ''
         # Input has to be provided for the workflow to run
@@ -116,3 +116,11 @@ jobs:
         password: ${{ secrets.FTP_PASSWORD }}
         localDir: "net.resheim.eclipse.timekeeper-site/target/repository"
         remoteDir: "timekeeper/release/latest"
+        
+    - name: Set Next Version
+      run: ./newVersion.sh ${{ inputs.nextVersion }}
+
+    - name: Commit new Version
+      run: git commit -m "New version ${{ inputs.nextVersion }}";git push
+
+      
