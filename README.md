@@ -31,8 +31,11 @@ The Export and Import buttons are used for exactly that. CSV files, one for each
 You can install the latest **public release** from the <a href="http://marketplace.eclipse.org/content/timekeeper-eclipse">Eclipse Marketplace</a> or drag <a href="http://marketplace.eclipse.org/marketplace-client-intro?mpc_install=2196325" title="Drag and drop into a running Eclipse workspace to install Eclipse Timekeeper"><img src="https://marketplace.eclipse.org/sites/all/themes/solstice/public/images/marketplace/btn-install.png" height="28px"/>
 </a> into an running Eclipse instance. 
 The latest CI build artifacts can be found under in following locations:
+* [Update Site Latest Release](https://timekeeper.solution42.cz/timekeeper/release/latest/) Please copy the URL to Help -> Install New Software.
+* [Update Site Release](https://timekeeper.solution42.cz/timekeeper/release) Please select desired version and copy the URL to Help -> Install New Software.
+* [Update Site Build Version](https://timekeeper.solution42.cz/timekeeper/build/) Please select desired version and copy the URL to Help -> Install New Software.
 * [GitHub Actions](.//actions?query=workflow%3ABuild) - In order to install from there you must download the _Timekeeper<version>_build_.zip file and point your Eclipse instance to that. 
-* [Update Site](https://timekeeper.solution42.cz/timekeeper/) Please select desired version and copy the URL to Help -> Install New Software.
+
 
 ## Updating
 If you are upgrading from older version it might be necessary to delete the database and let Timekeeper to re-create it.
