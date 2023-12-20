@@ -24,15 +24,12 @@ import org.eclipse.mylyn.internal.tasks.core.LocalTask;
 import org.eclipse.mylyn.tasks.core.ITask;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 
 import net.resheim.eclipse.timekeeper.db.model.Activity;
-import net.resheim.eclipse.timekeeper.db.model.GlobalTaskId;
-import net.resheim.eclipse.timekeeper.db.model.Project;
 import net.resheim.eclipse.timekeeper.db.model.Task;
 
 @SuppressWarnings("restriction")
@@ -184,8 +181,6 @@ public class SharedStorageTest {
 		a.setEnd(now);
 		service.persistTask(ttask);
 
-		// now attempt to load the task from the persistent storage
-		GlobalTaskId id = new GlobalTaskId(ttask.getRepositoryUrl(), ttask.getTaskId());
 		// Task dbTask = entityManager.find(Task.class, id);
 		Task dbTask = service.getTask(mylynTask);
 		// Test the single task

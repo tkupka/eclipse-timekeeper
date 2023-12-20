@@ -90,4 +90,4 @@ jobs:
         user: ${{ secrets.FTP_USERNAME }}
         password: ${{ secrets.FTP_PASSWORD }}
         localDir: "net.resheim.eclipse.timekeeper-site/target/repository"
-        remoteDir: "timekeeper/${{ env.VERSION }}"
+        remoteDir: "timekeeper/build/${{ env.VERSION }}"

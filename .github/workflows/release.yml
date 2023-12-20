@@ -8,9 +8,9 @@ on:
     inputs:
       name:
         # Friendly description to be shown in the UI instead of 'name'
-        description: 'Person to greet'
+        nextVersion: 'Next Version'
         # Default value if no value is explicitly provided
-        default: 'World'
+        default: ''
         # Input has to be provided for the workflow to run
         required: true
         # The data type of the input
@@ -19,12 +19,100 @@ on:
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   # This workflow contains a single job called "greet"
-  greet:
-    # The type of runner that the job will run on
+  Release:
     runs-on: ubuntu-latest
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-    # Runs a single command using the runners shell
-    - name: Send greeting
-      run: echo "Hello ${{ inputs.name }}"
+    - uses: actions/checkout@v4
+
+    - name: Prepare Maven Cache           
+      uses: actions/cache@v1
+      with:
+        path: ~/.m2/repository
+        key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+        restore-keys: |
+          ${{ runner.os }}-maven-
+          
+    - name: Set up JDK 17
+      uses: actions/setup-java@v3
+      with:
+        distribution: 'temurin'
+        java-version: 17
+        
+    - name: Install Maven
+      uses: yuzhiyongcn/setup-maven@v1.0.0            
+      with:
+        maven-version: 3.9.0
+            
+    - name: Install Xvfb
+      run: sudo apt-get install xvfb
+    
+    - name: Print Maven Version
+      run: xvfb-run --server-args="-screen 0, 1024x768x24" --auto-servernum mvn --version  
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        
+    - name: Build with Maven
+      run: xvfb-run --server-args="-screen 0, 1024x768x24" --auto-servernum mvn clean verify -Pother-os -Dtycho.localArtifacts=ignore -Dorg.eclipse.swtbot.search.timeout=20000 -Dscreenshots=${{ github.workspace }}/images  
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        
+    - name: Upload Failed Tests screenshots
+      uses: actions/upload-artifact@v3
+      if: failure()
+      with:
+        name: Failed tests screenshots
+        path: net.resheim.eclipse.timekeeper.test/screenshots
+
+    - name: Upload screenshots
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: Documentation screenshots
+        path: images
+
+    - name: Publish Surefire report
+      uses: ScaCap/action-surefire-report@v1.0.13
+      if: always()
+      with:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        report_paths: "**/target/surefire-reports/*.xml"
+
+    - name: Create Version File
+      run: (echo -n "VERSION=";mvn help:evaluate -Dexpression=project.version -q -DforceStdout) > version.txt;sed -i 's/-SNAPSHOT//g' version.txt
+
+    - name: Show Version File
+      run: cat version.txt
+
+
+    - name: Create Version ENV Variable
+      run:  cat version.txt >> "$GITHUB_ENV"
+      
+    - name: Print Version ENV Variable
+      run: echo Version=$VERSION
+                    
+    - name: Upload p2 repository Version ${{ env.VERSION }}
+      uses: actions/upload-artifact@v3
+      with:
+        name: Timekeeper${{ env.VERSION }}_build
+        path: net.resheim.eclipse.timekeeper-site/target/repository
+
+    - name: Deploy Released Version ${{ env.VERSION }} on Server
+      uses: sebastianpopp/ftp-action@v2.0.0
+      with:
+        host: ${{ secrets.FTP_SERVER }}
+        user: ${{ secrets.FTP_USERNAME }}
+        password: ${{ secrets.FTP_PASSWORD }}
+        localDir: "net.resheim.eclipse.timekeeper-site/target/repository"
+        remoteDir: "timekeeper/release/${{ env.VERSION }}"
+        
+    - name: Deploy Released Version ${{ env.VERSION }} on Server to LATEST
+      uses: sebastianpopp/ftp-action@v2.0.0
+      with:
+        host: ${{ secrets.FTP_SERVER }}
+        user: ${{ secrets.FTP_USERNAME }}
+        password: ${{ secrets.FTP_PASSWORD }}
+        localDir: "net.resheim.eclipse.timekeeper-site/target/repository"
+        remoteDir: "timekeeper/release/latest"

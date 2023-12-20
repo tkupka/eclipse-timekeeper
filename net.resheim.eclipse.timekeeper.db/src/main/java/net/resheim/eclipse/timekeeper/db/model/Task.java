@@ -38,8 +38,6 @@ import javax.persistence.Transient;
 import org.eclipse.mylyn.internal.tasks.core.AbstractTask;
 import org.eclipse.mylyn.tasks.core.ITask;
 
-import net.resheim.eclipse.timekeeper.db.TimekeeperService;
-
 /**
  * A {@link Task} is the persisted link to an {@link AbstractTask}. It holds a
  * number of {@link Activity} instances which each represent a period of work on
