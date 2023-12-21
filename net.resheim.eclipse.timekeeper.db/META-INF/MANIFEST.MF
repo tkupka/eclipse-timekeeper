@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: Timekeeper database
 Bundle-SymbolicName: net.resheim.eclipse.timekeeper.db;singleton:=true
 Automatic-Module-Name: net.resheim.eclipse.timekeeper.db
-Bundle-Version: 3.0.0.qualifier
+Bundle-Version: 3.1.0.qualifier
 Export-Package: net.resheim.eclipse.timekeeper.db,
  net.resheim.eclipse.timekeeper.db.converters,
  net.resheim.eclipse.timekeeper.db.model,
