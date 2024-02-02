@@ -28,7 +28,7 @@ The Export and Import buttons are used for exactly that. CSV files, one for each
 
 ## Installing
 
-You can install the latest **public release** from the <a href="http://marketplace.eclipse.org/content/timekeeper-eclipse">Eclipse Marketplace</a> or drag <a href="http://marketplace.eclipse.org/marketplace-client-intro?mpc_install=2196325" title="Drag and drop into a running Eclipse workspace to install Eclipse Timekeeper"><img src="https://marketplace.eclipse.org/sites/all/themes/solstice/public/images/marketplace/btn-install.png" height="28px"/>
+You can install the latest **public release** from the <a href="http://marketplace.eclipse.org/content/timekeeper-eclipse">Eclipse Marketplace</a> or drag <a href="http://marketplace.eclipse.org/marketplace-client-intro?mpc_install=5753936" title="Drag and drop into a running Eclipse workspace to install Eclipse Timekeeper"><img src="https://marketplace.eclipse.org/modules/custom/eclipsefdn/eclipsefdn_marketplace/images/btn-install.svg" height="28px"/>
 </a> into an running Eclipse instance. 
 The latest CI build artifacts can be found under in following locations:
 * [Update Site Latest Release](https://timekeeper.solution42.cz/timekeeper/release/latest/) Please copy the URL to Help -> Install New Software.
