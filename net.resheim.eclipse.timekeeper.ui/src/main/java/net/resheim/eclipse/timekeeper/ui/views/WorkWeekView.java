@@ -305,14 +305,14 @@ public class WorkWeekView extends ViewPart {
 	private LocalDate calculateFirstDayOfWeek(LocalDate date) {
 		WeekFields weekFields = determineWeekFields();
 		long day = date.get(weekFields.dayOfWeek());
-		LocalDate firstDayOfWeek = date.minusDays(day);
+		LocalDate firstDayOfWeek = date.minusDays(day - 1);
 		return firstDayOfWeek;
 	}
 
 	private WeekFields determineWeekFields() {
 		IPreferenceStore preferenceStore = TasksUiPlugin.getDefault().getPreferenceStore();
 		int weekStart = preferenceStore.getInt(ITasksUiPreferenceConstants.WEEK_START_DAY);
-		DayOfWeek dow = DayOfWeek.SUNDAY.plus(weekStart);
+		DayOfWeek dow = DayOfWeek.SUNDAY.plus(weekStart - 1);
 		// WeekFields weekFields = WeekFields.of(Locale.getDefault());
 		WeekFields weekFields = WeekFields.of(dow, 7);
 		return weekFields;

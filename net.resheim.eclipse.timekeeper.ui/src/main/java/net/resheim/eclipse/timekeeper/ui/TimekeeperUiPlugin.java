@@ -141,7 +141,7 @@ public class TimekeeperUiPlugin extends AbstractUIPlugin implements IPropertyCha
 	 */
 	public String[] getHeadings(LocalDate date) {
 		String[] headings = new String[7];
-		WeekFields weekFields = WeekFields.of(Locale.getDefault());
+		WeekFields weekFields = WeekFields.of(date.getDayOfWeek(), 7);
 		// Current day in the week
 		long day = date.get(weekFields.dayOfWeek());
 		// First date of the week
