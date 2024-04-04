@@ -2,7 +2,7 @@
 
 This is a simple time-tracking plug-in integrating with [Eclipse Mylyn](http://eclipse.org/mylyn/) Tasks.
 
-# The plugin gets updated to latest software stack and it's working with [Eclipse Mylyn 4.1.0](http://eclipse.org/mylyn/) and [JIRA Connector 5.0.0](https://github.com/gnl42/JiraConnector)
+# The plugin gets updated to latest software stack and it's working with [Eclipse Mylyn v4.X](http://eclipse.org/mylyn/) and [JIRA Connector v5.X](https://github.com/gnl42/JiraConnector)
 
 ![image](./resources/screenshots/workweek-view.png)
 
