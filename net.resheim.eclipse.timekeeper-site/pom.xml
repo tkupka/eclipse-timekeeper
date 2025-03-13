@@ -7,7 +7,7 @@
 		<relativePath>../pom.xml</relativePath>
 		<artifactId>net.resheim.eclipse.timekeeper-parent</artifactId>
 		<groupId>net.resheim.eclipse.timekeeper</groupId>
-		<version>3.2.2-SNAPSHOT</version>
+		<version>3.2.3-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>net.resheim.eclipse.timekeeper-site</artifactId>

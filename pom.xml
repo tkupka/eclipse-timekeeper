@@ -19,7 +19,7 @@
 
 	<groupId>net.resheim.eclipse.timekeeper</groupId>
 	<artifactId>net.resheim.eclipse.timekeeper-parent</artifactId>
-	<version>3.2.2-SNAPSHOT</version>
+	<version>3.2.3-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<name>Timekeeper for Eclipse</name>
