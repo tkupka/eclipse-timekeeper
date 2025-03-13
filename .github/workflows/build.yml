@@ -44,14 +44,14 @@ jobs:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         
     - name: Upload Failed Tests screenshots
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: failure()
       with:
         name: Failed tests screenshots
         path: net.resheim.eclipse.timekeeper.test/screenshots
 
     - name: Upload screenshots
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: always()
       with:
         name: Documentation screenshots
@@ -78,7 +78,7 @@ jobs:
       run: echo Version=$VERSION
                     
     - name: Upload p2 repository Version ${{ env.VERSION }}
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: Timekeeper${{ env.VERSION }}_build
         path: net.resheim.eclipse.timekeeper-site/target/repository
